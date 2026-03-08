@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FundMe | Getting Started</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        :root {
+            /* Override or extend design system for onboarding */
+            --radius-xl: 16px;
+            --gradient-subtle: linear-gradient(180deg, var(--color-bg-surface) 0%, #F0F4F8 100%);
+        }
+
+        body {
+            background: var(--gradient-subtle);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        .onboarding-header {
+            width: 100%;
+            padding: var(--spacing-lg) var(--spacing-2xl);
+            display: flex;
+            justify-content: center;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(8px);
+            position: fixed;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-text {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--color-primary-dark);
+            text-decoration: none;
+        }
+
+        .onboarding-flow-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 600px;
+            padding: var(--spacing-2xl) var(--spacing-md);
+            margin-top: 60px;
+        }
+
+        .onboarding-card {
+            background: var(--color-bg-surface);
+            border-radius: var(--radius-xl);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02);
+            padding: var(--spacing-2xl);
+            width: 100%;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            transform: translateY(20px);
+            opacity: 0;
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease;
+        }
+
+        .onboarding-card.active {
+            display: flex;
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Success Icon Anim */
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: #ECFDF5;
+            color: var(--color-accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .success-icon svg {
+            width: 40px;
+            height: 40px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: var(--spacing-md);
+            color: var(--color-primary-dark);
+        }
+
+        .subtext {
+            color: var(--color-text-secondary);
+            font-size: 1.125rem;
+            margin-bottom: var(--spacing-2xl);
+            max-width: 400px;
+            line-height: 1.6;
+        }
+
+        .btn-large {
+            padding: 1rem 2.5rem;
+            font-size: 1rem;
+            border-radius: var(--radius-md);
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .microcopy {
+            margin-top: var(--spacing-md);
+            font-size: 0.875rem;
+            color: #9CA3AF;
+        }
+
+        /* Progress Ring */
+        .progress-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .progress-ring {
+            width: 120px;
+            height: 120px;
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring-circle {
+            fill: none;
+            stroke-width: 8;
+            stroke-linecap: round;
+        }
+
+        .progress-ring-bg {
+            stroke: #F3F4F6;
+        }
+
+        .progress-ring-fill {
+            stroke: var(--color-accent);
+            stroke-dasharray: 339.292;
+            stroke-dashoffset: 84.823; /* 75% complete */
+            transition: stroke-dashoffset 1s ease-out;
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--color-primary-dark);
+        }
+
+        /* Checklist Styles */
+        .checklist {
+            width: 100%;
+            text-align: left;
+            margin-bottom: var(--spacing-2xl);
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            padding: var(--spacing-md);
+            background: #F9FAFB;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border);
+        }
+
+        .checklist-item.pending {
+            border-left: 4px solid var(--color-alert);
+        }
+
+        .checklist-item.done {
+            border-left: 4px solid var(--color-accent);
+        }
+
+        .checklist-icon {
+            flex-shrink: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .checklist-label {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--color-text-main);
+        }
+
+        .checklist-status {
+            margin-left: auto;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-done { color: var(--color-accent); }
+        .status-pending { color: var(--color-alert); }
+
+        /* Step 3 Grid */
+        .guidance-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--spacing-md);
+            width: 100%;
+            text-align: left;
+            margin-bottom: var(--spacing-2xl);
+        }
+
+        .guidance-section-title {
+            font-size: 0.875rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--color-text-secondary);
+            margin-bottom: var(--spacing-sm);
+            margin-top: var(--spacing-md);
+        }
+
+        .feature-mini-card {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--spacing-md);
+            padding: var(--spacing-md);
+            background: white;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+        }
+
+        .feature-mini-icon {
+            width: 32px;
+            height: 32px;
+            background: #F0F9FF;
+            color: #0284C7;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .feature-mini-content h4 {
+            font-size: 0.95rem;
+            margin-bottom: 2px;
+        }
+
+        .feature-mini-content p {
+            font-size: 0.85rem;
+            color: var(--color-text-secondary);
+            margin: 0;
+        }
+
+        .btn-secondary-link {
+            background: none;
+            border: none;
+            color: var(--color-text-secondary);
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: var(--spacing-md);
+            text-decoration: underline;
+        }
+
+        /* Animations */
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .animate-in {
+            animation: fadeInScale 0.6s ease-out forwards;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="onboarding-header">
+        <a href="index.html" class="logo-text">FundMe.</a>
+    </header>
+
+    <main class="onboarding-flow-container">
+        <!-- Screen 1: Profile Created -->
+        <section id="step-1" class="onboarding-card active">
+            <div class="success-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </div>
+            <h1>Your Startup Profile Is Ready!</h1>
+            <p class="subtext">We’re preparing personalized funding opportunities for you based on your industry and stage.</p>
+            <button class="btn btn-primary btn-large" onclick="nextStep(2)">Continue</button>
+            <p class="microcopy">This only takes a moment.</p>
+        </section>
+
+        <!-- Screen 2: Profile Completion Checklist -->
+        <section id="step-2" class="onboarding-card">
+            <div class="progress-container">
+                <svg class="progress-ring">
+                    <circle class="progress-ring-circle progress-ring-bg" cx="60" cy="60" r="54"></circle>
+                    <circle id="progress-ring-fill" class="progress-ring-circle progress-ring-fill" cx="60" cy="60" r="54"></circle>
+                </svg>
+                <div class="progress-text">75%</div>
+            </div>
+            <h1>Nearly There...</h1>
+            <p class="subtext">A complete profile increases your match accuracy by up to 40%.</p>
+            
+            <div class="checklist">
+                <div class="checklist-item done">
+                    <div class="checklist-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--color-accent)"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                    </div>
+                    <span class="checklist-label">Startup basics</span>
+                    <span class="checklist-status status-done">Done</span>
+                </div>
+                <div class="checklist-item done">
+                    <div class="checklist-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--color-accent)"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                    </div>
+                    <span class="checklist-label">Funding preferences</span>
+                    <span class="checklist-status status-done">Done</span>
+                </div>
+                <div class="checklist-item pending">
+                    <div class="checklist-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--color-alert)"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+                    </div>
+                    <span class="checklist-label">Pitch deck</span>
+                    <span class="checklist-status status-pending">Missing</span>
+                </div>
+                <div class="checklist-item pending">
+                    <div class="checklist-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--color-alert)"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+                    </div>
+                    <span class="checklist-label">Executive summary</span>
+                    <span class="checklist-status status-pending">Missing</span>
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-large" onclick="window.location.href='profile.html'">Complete Your Profile</button>
+            <button class="btn-secondary-link" onclick="window.location.href='dashboard.html'">Skip for now →</button>
+        </section>
+
+        <!-- Screen 3: First-Time Guidance -->
+        <section id="step-3" class="onboarding-card">
+            <h1 style="margin-top: 1rem;">Before You Start</h1>
+            <p class="subtext">Here's how to get the most out of FundMe from day one.</p>
+
+            <div class="guidance-grid">
+                <div class="guidance-section-title">Recommended First Steps</div>
+                <div class="feature-mini-card">
+                    <div class="feature-mini-icon">1</div>
+                    <div class="feature-mini-content">
+                        <h4>Explore matched opportunities</h4>
+                        <p>We've already found 12 grants for your sector.</p>
+                    </div>
+                </div>
+                <div class="feature-mini-card">
+                    <div class="feature-mini-icon">2</div>
+                    <div class="feature-mini-content">
+                        <h4>Upload your Pitch Deck</h4>
+                        <p>Let AI analyze your fit for major VC programs.</p>
+                    </div>
+                </div>
+
+                <div class="guidance-section-title">What you can do</div>
+                <div class="feature-mini-card">
+                    <div class="feature-mini-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </div>
+                    <div class="feature-mini-content">
+                        <h4>Search & Filter</h4>
+                        <p>Discover global grants and local incubators.</p>
+                    </div>
+                </div>
+                <div class="feature-mini-card">
+                    <div class="feature-mini-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    </div>
+                    <div class="feature-mini-content">
+                        <h4>Save & Track</h4>
+                        <p>Never miss a deadline with your personal watchlist.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                <button class="btn btn-primary btn-large" onclick="window.location.href='dashboard.html'">Enter My Dashboard</button>
+                <button class="btn btn-outline btn-large" onclick="window.location.href='profile.html'">Complete Profile First</button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        function nextStep(stepNumber) {
+            // Hide all cards
+            const cards = document.querySelectorAll('.onboarding-card');
+            cards.forEach(card => {
+                card.classList.remove('active');
+            });
+
+            // Show target card
+            const targetCard = document.getElementById(`step-${stepNumber}`);
+            if (targetCard) {
+                // Add a small delay for smoother transition feel
+                setTimeout(() => {
+                    targetCard.classList.add('active');
+                    
+                    // Specific logic for step 2 animation
+                    if (stepNumber === 2) {
+                        animateProgressRing();
+                    }
+                }, 50);
+            }
+        }
+
+        function animateProgressRing() {
+            const ring = document.getElementById('progress-ring-fill');
+            if (ring) {
+                // Circumference is 2 * PI * 54 = 339.292
+                // 75% complete means 25% remaining (dashoffset)
+                // 339.292 * 0.25 = 84.823
+                ring.style.strokeDashoffset = '339.292'; // Reset
+                setTimeout(() => {
+                    ring.style.strokeDashoffset = '84.823'; // Animate to 75%
+                }, 100);
+            }
+        }
+    </script>
+</body>
+
+</html>

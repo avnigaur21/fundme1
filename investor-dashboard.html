@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FundMe | Investor Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <span class="sidebar-logo">FundMe.</span>
+                <button class="sidebar-toggle" id="sidebar-toggle" title="Expand sidebar" aria-label="Expand sidebar">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+                    </svg>
+                </button>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="investor-dashboard.html" class="nav-item active">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
+                    </svg>
+                    <span class="nav-item-label">Dashboard</span>
+                </a>
+                <a href="investor-schemes.html" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path
+                            d="M11.5 2C6.81 2 3 5.81 3 10.5S6.81 19 11.5 19h.5v3c4.86-2.36 8-6.17 8-10.5C20 5.81 16.19 2 11.5 2zm1 14.5h-2V15h2v1.5zm0-2.5h-2c0-2.5 2.5-2.5 2.5-4 0-1.5-1.5-1.5-1.5-1.5s-1.5 0-1.5 1.5h-2c0-3 3-3 3-3s3.5 0 3.5 3.5c0 2-2.5 2-2.5 4z" />
+                    </svg>
+                    <span class="nav-item-label">Schemes & Incentives</span>
+                </a>
+                <a href="investor-fund-calls.html" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path
+                            d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+                    </svg>
+                    <span class="nav-item-label">Fund Calls</span>
+                </a>
+                <a href="investor-licenses.html" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path
+                            d="M12 2l-5.5 9h11L12 2zm0 3.84L13.93 9h-3.87L12 5.84zM17.5 13c-2.49 0-4.5 2.01-4.5 4.5s2.01 4.5 4.5 4.5 4.5-2.01 4.5-4.5-2.01-4.5-4.5-4.5zm0 7c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5zM3 21.5h8v-8H3v8zm2-6h4v4H5v-4z" />
+                    </svg>
+                    <span class="nav-item-label">Licenses & TBI</span>
+                </a>
+                <a href="investor-eligibility.html" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                    </svg>
+                    <span class="nav-item-label">Eligibility Check</span>
+                </a>
+                <a href="investor-watchlist.html" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z" />
+                    </svg>
+                    <span class="nav-item-label">Saved / Watchlist</span>
+                </a>
+                <div class="sidebar-divider"></div>
+                <a href="investor-profile.html" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path
+                            d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z" />
+                    </svg>
+                    <span class="nav-item-label">Investor Profile</span>
+                </a>
+                <a href="investor-settings.html" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path
+                            d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84a.484.484 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.488.488 0 0 0-.59.22L2.09 8.83a.488.488 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.57 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
+                    </svg>
+                    <span class="nav-item-label">Settings</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Topbar -->
+            <header class="topbar">
+                <button class="btn btn-outline" id="menu-toggle"
+                    style="margin-right: 1rem; padding: 4px 8px; display: none;">☰</button>
+                <h1 class="topbar-title">Investor Overview</h1>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div style="font-size: 0.875rem; text-align: right;">
+                        <div style="font-weight: 600;">Sequoia India</div>
+                        <div style="font-size: 0.75rem; color: var(--color-text-secondary);">Investor Account</div>
+                    </div>
+                    <div style="width: 32px; height: 32px; background: #E5E7EB; border-radius: 50%;"></div>
+                </div>
+            </header>
+
+            <div class="container" style="padding-top: var(--spacing-lg); padding-bottom: 5rem;">
+                <!-- Metrics / Active Schemes Section -->
+                <h3 style="margin-bottom: var(--spacing-md); display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="font-size: 1rem;">🚀</span> Active Schemes
+                </h3>
+                <div class="metrics-grid" style="margin-bottom: var(--spacing-xl);">
+                    <div class="metric-card">
+                        <div class="metric-value">12</div>
+                        <div class="metric-label">Investor Programs</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">08</div>
+                        <div class="metric-label">Fund Calls</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">05</div>
+                        <div class="metric-label">Incubator Schemes</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">03</div>
+                        <div class="metric-label">Campus Funds</div>
+                    </div>
+                </div>
+
+                <!-- Reordered Sections: Vertical Stack -->
+                <div style="display: flex; flex-direction: column; gap: var(--spacing-xl);">
+
+                    <!-- 1. Recently Announced Programs -->
+                    <section>
+                        <h3 style="margin-bottom: var(--spacing-md); display: flex; align-items: center; gap: 0.5rem;">
+                            <span style="font-size: 1rem;">✨</span> Recently Announced Programs
+                        </h3>
+                        <div class="data-table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Program Name</th>
+                                        <th>Category</th>
+                                        <th>Launch Date</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <div style="font-weight: 600;">DeepTech Spark 2026</div>
+                                            <div style="font-size: 0.75rem; color: var(--color-text-secondary);">Govt.
+                                                of India Initiative</div>
+                                        </td>
+                                        <td>Equity Support</td>
+                                        <td>Feb 20, 2026</td>
+                                        <td><button class="btn btn-primary"
+                                                style="padding: 4px 8px; font-size: 0.75rem;">Explore</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div style="font-weight: 600;">Startup India Fund of Funds (V2)</div>
+                                            <div style="font-size: 0.75rem; color: var(--color-text-secondary);">DPIIT
+                                            </div>
+                                        </td>
+                                        <td>Fund of Funds</td>
+                                        <td>Feb 15, 2026</td>
+                                        <td><button class="btn btn-primary"
+                                                style="padding: 4px 8px; font-size: 0.75rem;">Explore</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div style="font-weight: 600;">TBI Excellence Award 2026</div>
+                                            <div style="font-size: 0.75rem; color: var(--color-text-secondary);">
+                                                Ministry of Science & Tech</div>
+                                        </td>
+                                        <td>Grant Assistance</td>
+                                        <td>Feb 10, 2026</td>
+                                        <td><button class="btn btn-primary"
+                                                style="padding: 4px 8px; font-size: 0.75rem;">Explore</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <!-- 2. Upcoming Deadlines -->
+                    <section>
+                        <h3 style="margin-bottom: var(--spacing-md); display: flex; align-items: center; gap: 0.5rem;">
+                            <span style="font-size: 1rem;">📆</span> Upcoming Deadlines
+                        </h3>
+                        <div class="deadlines-list">
+                            <div class="deadline-item" style="grid-template-columns: 120px 1fr auto;">
+                                <span class="deadline-date">Mar 15, 2026</span>
+                                <span class="deadline-name">Scheme Application Cutoff</span>
+                                <span class="deadline-days" style="color: var(--color-alert); font-weight: 600;">in 22
+                                    days</span>
+                            </div>
+                            <div class="deadline-item" style="grid-template-columns: 120px 1fr auto;">
+                                <span class="deadline-date">Apr 01, 2026</span>
+                                <span class="deadline-name">Fund Call Closure (Phase 2)</span>
+                                <span class="deadline-days">in 38 days</span>
+                            </div>
+                            <div class="deadline-item" style="grid-template-columns: 120px 1fr auto;">
+                                <span class="deadline-date">Apr 10, 2026</span>
+                                <span class="deadline-name">TBI Renewal Window</span>
+                                <span class="deadline-days">in 48 days</span>
+                            </div>
+                            <div class="deadline-item" style="grid-template-columns: 120px 1fr auto;">
+                                <span class="deadline-date">May 20, 2026</span>
+                                <span class="deadline-name">Incubator Recognition</span>
+                                <span class="deadline-days">in 88 days</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 3. Quick Links Section -->
+                    <section>
+                        <h3 style="margin-bottom: var(--spacing-md); display: flex; align-items: center; gap: 0.5rem;">
+                            <span style="font-size: 1rem;">🔗</span> Quick Links
+                        </h3>
+                        <div class="grid grid-cols-2">
+                            <a href="#" class="card"
+                                style="padding: var(--spacing-md); display: flex; align-items: center; gap: 0.75rem;">
+                                <div
+                                    style="width: 40px; height: 40px; background: #F3F4F6; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                    🏢</div>
+                                <div>
+                                    <div style="font-weight: 600; font-size: 0.9rem;">TBI Licensing Portal</div>
+                                    <div style="font-size: 0.75rem; color: var(--color-text-secondary);">Official
+                                        Accreditation</div>
+                                </div>
+                            </a>
+                            <a href="#" class="card"
+                                style="padding: var(--spacing-md); display: flex; align-items: center; gap: 0.75rem;">
+                                <div
+                                    style="width: 40px; height: 40px; background: #F3F4F6; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                    📜</div>
+                                <div>
+                                    <div style="font-weight: 600; font-size: 0.9rem;">DPIIT Recognition</div>
+                                    <div style="font-size: 0.75rem; color: var(--color-text-secondary);">Guidelines &
+                                        Portal</div>
+                                </div>
+                            </a>
+                            <a href="#" class="card"
+                                style="padding: var(--spacing-md); display: flex; align-items: center; gap: 0.75rem;">
+                                <div
+                                    style="width: 40px; height: 40px; background: #F3F4F6; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                    📞</div>
+                                <div>
+                                    <div style="font-weight: 600; font-size: 0.9rem;">Open Fund Calls</div>
+                                    <div style="font-size: 0.75rem; color: var(--color-text-secondary);">Active Calls
+                                        for Funds</div>
+                                </div>
+                            </a>
+                            <a href="#" class="card"
+                                style="padding: var(--spacing-md); display: flex; align-items: center; gap: 0.75rem;">
+                                <div
+                                    style="width: 40px; height: 40px; background: #F3F4F6; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                    🌐</div>
+                                <div>
+                                    <div style="font-weight: 600; font-size: 0.9rem;">Government & Institutional Schemes
+                                    </div>
+                                    <div style="font-size: 0.75rem; color: var(--color-text-secondary);">All Schemes &
+                                        Incentives</div>
+                                </div>
+                            </a>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+
+</html>

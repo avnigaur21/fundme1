@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FundMe | Explorer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar (collapsed by default, expand on hover or click) -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <span class="sidebar-logo">FundMe.</span>
+                <button class="sidebar-toggle" id="sidebar-toggle" title="Expand sidebar" aria-label="Expand sidebar">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+                    </svg>
+                </button>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item" data-tooltip="Dashboard">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
+                    </svg>
+                    <span class="nav-item-label">Dashboard</span>
+                </a>
+                <a href="explorer.html" class="nav-item active" data-tooltip="Explorer">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path
+                            d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+                    </svg>
+                    <span class="nav-item-label">Explorer</span>
+                </a>
+                <a href="saved.html" class="nav-item" data-tooltip="Saved">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z" />
+                    </svg>
+                    <span class="nav-item-label">Saved</span>
+                </a>
+                <a href="applications.html" class="nav-item" data-tooltip="Applications">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path
+                            d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
+                    </svg>
+                    <span class="nav-item-label">Applications</span>
+                </a>
+                <a href="profile.html" class="nav-item" data-tooltip="Startup Profile">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path
+                            d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z" />
+                    </svg>
+                    <span class="nav-item-label">Startup Profile</span>
+                </a>
+                <div class="sidebar-divider"></div>
+                <a href="settings.html" class="nav-item" data-tooltip="Settings">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path
+                            d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84a.484.484 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.488.488 0 0 0-.59.22L2.09 8.83a.488.488 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.57 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
+                    </svg>
+                    <span class="nav-item-label">Settings</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Topbar -->
+            <header class="topbar">
+                <div style="display: flex; align-items: center;">
+                    <button class="btn btn-outline" id="menu-toggle"
+                        style="margin-right: 0.5rem; padding: 4px 8px; display: none;">☰</button>
+                    <button class="btn btn-outline" id="filter-toggle"
+                        style="margin-right: 1rem; padding: 4px 8px; display: none;">Filters</button>
+                    <h1 class="topbar-title">Opportunities Explorer</h1>
+                </div>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div style="font-size: 0.875rem; text-align: right;">
+                        <div style="font-weight: 600;">Acme Corp</div>
+                    </div>
+                    <div style="width: 32px; height: 32px; background: #E5E7EB; border-radius: 50%;"></div>
+                </div>
+            </header>
+
+            <!-- Explorer Container -->
+            <div class="explorer-container">
+                <!-- Filter Sidebar -->
+                <aside class="filter-sidebar" id="filter-sidebar">
+                    <div class="filter-group">
+                        <div class="filter-header">Startup Stage</div>
+                        <div class="filter-content">
+                            <label class="checkbox-label"><input type="checkbox"> Idea / Setup</label>
+                            <label class="checkbox-label"><input type="checkbox" checked> Prototype / MVP</label>
+                            <label class="checkbox-label"><input type="checkbox"> Early Revenue</label>
+                            <label class="checkbox-label"><input type="checkbox"> Growth</label>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <div class="filter-header">Sector</div>
+                        <div class="filter-content">
+                            <label class="checkbox-label"><input type="checkbox"> AI / Deep Tech</label>
+                            <label class="checkbox-label"><input type="checkbox" checked> FinTech</label>
+                            <label class="checkbox-label"><input type="checkbox"> Climate</label>
+                            <label class="checkbox-label"><input type="checkbox"> HealthTech</label>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <div class="filter-header">Funding Type</div>
+                        <div class="filter-content">
+                            <label class="checkbox-label"><input type="checkbox" checked> Grants (Non-dilutive)</label>
+                            <label class="checkbox-label"><input type="checkbox"> Accelerators</label>
+                            <label class="checkbox-label"><input type="checkbox"> Venture Comp</label>
+                            <label class="checkbox-label"><input type="checkbox"> Angel Networks</label>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <div class="filter-header">Funding Needs</div>
+                        <div class="filter-content">
+                            <label style="font-size: 0.75rem; color: var(--color-text-secondary);">$0 - $5M+</label>
+                            <input type="range" class="range-input">
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <div class="filter-header">Smart Tags</div>
+                        <div class="filter-content">
+                            <label class="checkbox-label"><input type="checkbox"> Women-led</label>
+                            <label class="checkbox-label"><input type="checkbox"> Minority Founders</label>
+                            <label class="checkbox-label"><input type="checkbox"> Impact Focus</label>
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- Results View -->
+                <section class="results-area">
+                    <div class="results-header">
+                        <div style="font-weight: 600; font-size: 0.875rem; color: var(--color-text-secondary);">Showing
+                            14 matches</div>
+                        <div class="view-toggle">
+                            <button class="view-btn active" title="Grid View">
+                                <svg viewBox="0 0 24 24">
+                                    <path
+                                        d="M4 11h5V5H4v6zm0 7h5v-6H4v6zm6 0h5v-6h-5v6zm6 0h5v-6h-5v6zm-6-7h5V5h-5v6zm6-6v6h5V5h-5z" />
+                                </svg>
+                            </button>
+                            <button class="view-btn" title="List View">
+                                <svg viewBox="0 0 24 24">
+                                    <path
+                                        d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2" id="results-grid">
+                        <!-- Cards -->
+                        <div class="opp-card" data-opportunity="nsf-seed-fund">
+                            <div class="opp-header">
+                                <div>
+                                    <h3 class="opp-title">NSF Seed Fund (Phase I)</h3>
+                                    <div style="font-size: 0.75rem; color: var(--color-text-secondary);">National
+                                        Science Foundation</div>
+                                </div>
+                                <span class="badge badge-match">98% Match</span>
+                            </div>
+                            <div class="opp-meta">
+                                <div><span
+                                        style="display:block; font-size: 0.7rem; text-transform:uppercase; color:#9CA3AF;">Amount</span>
+                                    $275,000</div>
+                                <div><span
+                                        style="display:block; font-size: 0.7rem; text-transform:uppercase; color:#9CA3AF;">Type</span>
+                                    Grant</div>
+                                <div><span
+                                        style="display:block; font-size: 0.7rem; text-transform:uppercase; color:#9CA3AF;">Equity</span>
+                                    0%</div>
+                                <div><span
+                                        style="display:block; font-size: 0.7rem; text-transform:uppercase; color:#9CA3AF;">Deadline</span>
+                                    Oct 15</div>
+                            </div>
+                            <div class="opp-badges">
+                                <span class="badge">Deep Tech</span>
+                                <span class="badge">R&D</span>
+                            </div>
+                            <button class="btn btn-primary"
+                                style="margin-top: var(--spacing-sm); width: 100%; justify-content: center;"
+                                onclick="window.location.href='opportunity.html'">View Details</button>
+                        </div>
+
+                        <div class="opp-card" data-opportunity="y-combinator-w27">
+                            <div class="opp-header">
+                                <div>
+                                    <h3 class="opp-title">Y Combinator W27</h3>
+                                    <div style="font-size: 0.75rem; color: var(--color-text-secondary);">Accelerator
+                                    </div>
+                                </div>
+                                <span class="badge badge-match">94% Match</span>
+                            </div>
+                            <div class="opp-meta">
+                                <div><span
+                                        style="display:block; font-size: 0.7rem; text-transform:uppercase; color:#9CA3AF;">Amount</span>
+                                    $500,000</div>
+                                <div><span
+                                        style="display:block; font-size: 0.7rem; text-transform:uppercase; color:#9CA3AF;">Type</span>
+                                    Investment</div>
+                                <div><span
+                                        style="display:block; font-size: 0.7rem; text-transform:uppercase; color:#9CA3AF;">Equity</span>
+                                    7%</div>
+                                <div><span
+                                        style="display:block; font-size: 0.7rem; text-transform:uppercase; color:#9CA3AF;">Deadline</span>
+                                    Nov 01</div>
+                            </div>
+                            <div class="opp-badges">
+                                <span class="badge">San Francisco</span>
+                                <span class="badge">Global</span>
+                            </div>
+                            <button class="btn btn-primary"
+                                style="margin-top: var(--spacing-sm); width: 100%; justify-content: center;"
+                                onclick="window.location.href='opportunity.html'">View Details</button>
+                        </div>
+
+                        <div class="opp-card" data-opportunity="climate-impact-fund">
+                            <div class="opp-header">
+                                <div>
+                                    <h3 class="opp-title">Climate Impact Fund</h3>
+                                    <div style="font-size: 0.75rem; color: var(--color-text-secondary);">Breakthrough
+                                        Energy</div>
+                                </div>
+                                <span class="badge badge-match"
+                                    style="background:#FFFBEB; color: #B45309; border-color: #FDE68A;">82% Match</span>
+                            </div>
+                            <div class="opp-meta">
+                                <div><span
+                                        style="display:block; font-size: 0.7rem; text-transform:uppercase; color:#9CA3AF;">Amount</span>
+                                    $1M - $5M</div>
+                                <div><span
+                                        style="display:block; font-size: 0.7rem; text-transform:uppercase; color:#9CA3AF;">Type</span>
+                                    VC</div>
+                                <div><span
+                                        style="display:block; font-size: 0.7rem; text-transform:uppercase; color:#9CA3AF;">Equity</span>
+                                    Negotiable</div>
+                                <div><span
+                                        style="display:block; font-size: 0.7rem; text-transform:uppercase; color:#9CA3AF;">Deadline</span>
+                                    Rolling</div>
+                            </div>
+                            <div class="opp-badges">
+                                <span class="badge">Clean Energy</span>
+                                <span class="badge">Series A</span>
+                            </div>
+                            <button class="btn btn-primary"
+                                style="margin-top: var(--spacing-sm); width: 100%; justify-content: center;"
+                                onclick="window.location.href='opportunity.html'">View Details</button>
+                        </div>
+
+                        <div class="opp-card" data-opportunity="horizon-europe-eic">
+                            <div class="opp-header">
+                                <div>
+                                    <h3 class="opp-title">Horizon Europe EIC</h3>
+                                    <div style="font-size: 0.75rem; color: var(--color-text-secondary);">Government
+                                        Grant</div>
+                                </div>
+                                <span class="badge badge-match"
+                                    style="background:#FFFBEB; color: #B45309; border-color: #FDE68A;">78% Match</span>
+                            </div>
+                            <div class="opp-meta">
+                                <div><span
+                                        style="display:block; font-size: 0.7rem; text-transform:uppercase; color:#9CA3AF;">Amount</span>
+                                    €2.5M</div>
+                                <div><span
+                                        style="display:block; font-size: 0.7rem; text-transform:uppercase; color:#9CA3AF;">Type</span>
+                                    Grant + Equity</div>
+                                <div><span
+                                        style="display:block; font-size: 0.7rem; text-transform:uppercase; color:#9CA3AF;">Equity</span>
+                                    Varies</div>
+                                <div><span
+                                        style="display:block; font-size: 0.7rem; text-transform:uppercase; color:#9CA3AF;">Deadline</span>
+                                    Dec 12</div>
+                            </div>
+                            <div class="opp-badges">
+                                <span class="badge">EU</span>
+                                <span class="badge">Deep Tech</span>
+                            </div>
+                            <button class="btn btn-primary"
+                                style="margin-top: var(--spacing-sm); width: 100%; justify-content: center;"
+                                onclick="window.location.href='opportunity.html'">View Details</button>
+                        </div>
+
+                        <div class="opp-card" data-opportunity="techstars-london">
+                            <div class="opp-header">
+                                <div>
+                                    <h3 class="opp-title">Techstars London</h3>
+                                    <div style="font-size: 0.75rem; color: var(--color-text-secondary);">Accelerator
+                                    </div>
+                                </div>
+                                <span class="badge badge-match"
+                                    style="background:#FFFBEB; color: #B45309; border-color: #FDE68A;">79% Match</span>
+                            </div>
+                            <div class="opp-meta">
+                                <div><span
+                                        style="display:block; font-size: 0.7rem; text-transform:uppercase; color:#9CA3AF;">Amount</span>
+                                    $120,000</div>
+                                <div><span
+                                        style="display:block; font-size: 0.7rem; text-transform:uppercase; color:#9CA3AF;">Type</span>
+                                    Hybrid</div>
+                                <div><span
+                                        style="display:block; font-size: 0.7rem; text-transform:uppercase; color:#9CA3AF;">Equity</span>
+                                    6%</div>
+                                <div><span
+                                        style="display:block; font-size: 0.7rem; text-transform:uppercase; color:#9CA3AF;">Deadline</span>
+                                    Dec 05</div>
+                            </div>
+                            <div class="opp-badges">
+                                <span class="badge">Fintech</span>
+                                <span class="badge">Mentorship</span>
+                            </div>
+                            <button class="btn btn-primary"
+                                style="margin-top: var(--spacing-sm); width: 100%; justify-content: center;"
+                                onclick="window.location.href='opportunity.html'">View Details</button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        (function () {
+            var params = new URLSearchParams(window.location.search);
+            var view = params.get('view');
+            if (view) {
+                var card = document.querySelector('.opp-card[data-opportunity="' + view + '"]');
+                if (card) {
+                    setTimeout(function () {
+                        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        card.classList.add('opp-card-highlight');
+                        setTimeout(function () { card.classList.remove('opp-card-highlight'); }, 2500);
+                    }, 100);
+                }
+            }
+        })();
+    </script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>

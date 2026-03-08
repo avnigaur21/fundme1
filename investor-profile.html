@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FundMe | Investor Profile</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Profile specific layout */
+        .profile-container {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xl);
+            padding-bottom: var(--spacing-2xl);
+        }
+
+        /* Section Headings - Consistent Scaling */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-xl);
+            padding-bottom: var(--spacing-sm);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--color-primary-dark);
+            margin: 0;
+            text-align: left;
+        }
+
+        .btn-edit {
+            font-size: 0.8125rem;
+            color: var(--color-accent);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .btn-edit:hover {
+            color: var(--color-accent-hover);
+        }
+
+        /* Info Display Grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--spacing-xl) var(--spacing-2xl);
+        }
+
+        .info-block {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .info-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .info-value {
+            font-size: 0.9375rem;
+            color: var(--color-text-main);
+            font-weight: 500;
+            line-height: 1.5;
+        }
+
+        /* Profile Strength Section - High Contrast Metric */
+        .strength-bar-container {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .strength-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 12px;
+        }
+
+        .strength-header .info-label {
+            font-size: 0.8125rem;
+        }
+
+        .strength-percentage {
+            font-weight: 700;
+            color: var(--color-accent);
+            font-size: 1rem;
+            line-height: 1;
+        }
+
+        .strength-bar-bg {
+            height: 8px;
+            background: #F3F4F6;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .strength-bar-fill {
+            height: 100%;
+            background: var(--color-accent);
+            width: 85%;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .checklist-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--spacing-md) var(--spacing-xl);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .check-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.9375rem;
+            color: var(--color-text-secondary);
+            padding: 6px 0;
+        }
+
+        .check-item.done {
+            color: var(--color-text-main);
+            font-weight: 500;
+        }
+
+        .status-marker {
+            width: 8px;
+            height: 8px;
+            flex-shrink: 0;
+        }
+
+        .status-marker.done {
+            background-color: var(--color-accent);
+        }
+
+        .status-marker.todo {
+            background-color: var(--color-border-hover);
+        }
+
+        .helper-text {
+            font-size: 0.8125rem;
+            color: var(--color-text-secondary);
+            margin-top: 8px;
+            display: block;
+        }
+
+        .btn-large {
+            padding: 10px 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        /* Quick Snapshot - Integrated & Clean */
+        .snapshot-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-xl);
+            margin-top: var(--spacing-xl);
+            padding-top: var(--spacing-xl);
+            border-top: 1px solid var(--color-border);
+        }
+
+        /* Documents Section - Structured Rows */
+        .document-item {
+            padding: var(--spacing-lg) 0;
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .document-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .doc-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .doc-main {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--color-text-main);
+        }
+
+        .doc-subtext {
+            font-size: 0.8125rem;
+            color: var(--color-text-secondary);
+            line-height: 1.4;
+        }
+
+        .tag-flat {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #F9FAFB;
+            border: 1px solid var(--color-border);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+            margin-right: 6px;
+        }
+
+        .role-switch-box {
+            background: #EFF6FF;
+            border: 1px solid #BFDBFE;
+            padding: var(--spacing-xl);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        @media (max-width: 768px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-container {
+                padding: 0 var(--spacing-md);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <span class="sidebar-logo">FundMe.</span>
+                <button class="sidebar-toggle" id="sidebar-toggle">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+                    </svg>
+                </button>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="investor-dashboard.html" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
+                    </svg>
+                    <span class="nav-item-label">Dashboard</span>
+                </a>
+                <a href="investor-schemes.html" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path
+                            d="M11.5 2C6.81 2 3 5.81 3 10.5S6.81 19 11.5 19h.5v3c4.86-2.36 8-6.17 8-10.5C20 5.81 16.19 2 11.5 2zm1 14.5h-2V15h2v1.5zm0-2.5h-2c0-2.5 2.5-2.5 2.5-4 0-1.5-1.5-1.5-1.5-1.5s-1.5 0-1.5 1.5h-2c0-3 3-3 3-3s3.5 0 3.5 3.5c0 2-2.5 2-2.5 4z" />
+                    </svg>
+                    <span class="nav-item-label">Schemes & Incentives</span>
+                </a>
+                <a href="investor-fund-calls.html" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path
+                            d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+                    </svg>
+                    <span class="nav-item-label">Fund Calls</span>
+                </a>
+                <a href="investor-licenses.html" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path
+                            d="M12 2l-5.5 9h11L12 2zm0 3.84L13.93 9h-3.87L12 5.84zM17.5 13c-2.49 0-4.5 2.01-4.5 4.5s2.01 4.5 4.5 4.5 4.5-2.01 4.5-4.5-2.01-4.5-4.5-4.5zm0 7c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5zM3 21.5h8v-8H3v8zm2-6h4v4H5v-4z" />
+                    </svg>
+                    <span class="nav-item-label">Licenses & TBI</span>
+                </a>
+                <a href="investor-eligibility.html" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                    </svg>
+                    <span class="nav-item-label">Eligibility Check</span>
+                </a>
+                <a href="investor-watchlist.html" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z" />
+                    </svg>
+                    <span class="nav-item-label">Saved</span>
+                </a>
+                <div class="sidebar-divider"></div>
+                <a href="investor-profile.html" class="nav-item active" data-tooltip="Investor Profile">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z" />
+                    </svg>
+                    <span class="nav-item-label">Investor Profile</span>
+                </a>
+                <a href="investor-settings.html" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path
+                            d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84a.484.484 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.488.488 0 0 0-.59.22L2.09 8.83a.488.488 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.57 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
+                    </svg>
+                    <span class="nav-item-label">Settings</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Topbar -->
+            <header class="topbar">
+                <button class="btn btn-outline" id="menu-toggle"
+                    style="margin-right: 1rem; padding: 4px 8px; display: none;">☰</button>
+                <h1 class="topbar-title">Investor Profile</h1>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div style="font-size: 0.875rem; text-align: right;">
+                        <div style="font-weight: 600;">DeepTech Ventures</div>
+                        <div style="font-size: 0.75rem; color: var(--color-text-secondary);">VC Fund • AI, Climate</div>
+                    </div>
+                    <div style="width: 32px; height: 32px; background: #E5E7EB; border-radius: 50%;"></div>
+                </div>
+            </header>
+
+            <div class="container" style="padding-top: var(--spacing-xl);">
+
+                <div class="profile-container">
+
+                    <!-- 1. Profile Strength -->
+                    <div class="card">
+                        <div class="strength-bar-container">
+                            <div class="strength-header">
+                                <span class="info-label">Profile Strength</span>
+                                <span class="strength-percentage">85% Complete</span>
+                            </div>
+                            <div class="strength-bar-bg">
+                                <div class="strength-bar-fill"></div>
+                            </div>
+                        </div>
+
+                        <div class="checklist-container">
+                            <div class="check-item done"><span class="status-marker done"></span> Entity basics — Done</div>
+                            <div class="check-item done"><span class="status-marker done"></span> Investment focus — Done</div>
+                            <div class="check-item done"><span class="status-marker done"></span> SEBI & DPIIT — Done</div>
+                            <div class="check-item"><span class="status-marker todo"></span> TBI Certification — Missing</div>
+                        </div>
+
+                        <div style="text-align: left;">
+                            <button class="btn btn-primary btn-large">Verify Regulatory Status</button>
+                            <span class="helper-text">Verified profiles receive 2.4x higher deal flow visibility.</span>
+                        </div>
+                    </div>
+
+                    <!-- 2. Basic Identity -->
+                    <div class="card">
+                        <div class="section-header">
+                            <h3 class="section-title">Basic Identity</h3>
+                            <a class="btn-edit">EDIT</a>
+                        </div>
+                        <div class="info-grid">
+                            <div class="info-block">
+                                <span class="info-label">Investor Name</span>
+                                <span class="info-value">DeepTech Ventures</span>
+                            </div>
+                            <div class="info-block">
+                                <span class="info-label">Entity Type</span>
+                                <span class="info-value">VC / AIF Fund</span>
+                            </div>
+                            <div class="info-block">
+                                <span class="info-label">Headquarters</span>
+                                <span class="info-value">Bangalore, India</span>
+                            </div>
+                            <div class="info-block">
+                                <span class="info-label">Year Established</span>
+                                <span class="info-value">2018</span>
+                            </div>
+                            <div class="info-block" style="grid-column: span 2;">
+                                <span class="info-label">About the Investor</span>
+                                <p class="info-value" style="font-weight: 400; line-height: 1.6;">
+                                    A leading deep-tech focused venture fund backing high-impact innovations in AI, ML and ClimateTech. 
+                                    We provide more than just capital—we offer strategic market access and technical mentorship.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="snapshot-row">
+                            <div class="info-block">
+                                <span class="info-label">Website</span>
+                                <span class="info-value">https://deeptechventures.com</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Investment Focus -->
+                    <div class="card">
+                        <div class="section-header">
+                            <h3 class="section-title">Investment Focus</h3>
+                            <a class="btn-edit">EDIT</a>
+                        </div>
+                        <div class="info-grid" style="margin-bottom: var(--spacing-xl);">
+                            <div class="info-block">
+                                <span class="info-label">Typical Check Size</span>
+                                <span class="info-value">$250K - $1.5M</span>
+                            </div>
+                            <div class="info-block">
+                                <span class="info-label">Stage Focus</span>
+                                <span class="info-value">TRL 4 - TRL 9 (MVP to Growth)</span>
+                            </div>
+                        </div>
+                        <div class="info-block">
+                            <span class="info-label">Sector Keywords</span>
+                            <div style="margin-top: 12px;">
+                                <span class="tag-flat">AI / ML</span>
+                                <span class="tag-flat">DeepTech</span>
+                                <span class="tag-flat">ClimateTech</span>
+                                <span class="tag-flat">Sustainability</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Ecosystem Participation -->
+                    <div class="card">
+                        <div class="section-header">
+                            <h3 class="section-title">Ecosystem Participation</h3>
+                            <a class="btn-edit">EDIT</a>
+                        </div>
+                        <div class="checklist-container" style="margin-bottom: 0;">
+                            <div class="check-item done"><span class="status-marker done"></span> Government Co-Investment</div>
+                            <div class="check-item done"><span class="status-marker done"></span> Fund-of-Funds Participant</div>
+                            <div class="check-item"><span class="status-marker todo"></span> Seeking TBI Recognition</div>
+                            <div class="check-item"><span class="status-marker todo"></span> Campus-Linked Support</div>
+                        </div>
+                    </div>
+
+                    <!-- 5. Regulatory Status -->
+                    <div class="card">
+                        <div class="section-header">
+                            <h3 class="section-title">Recognition & Regulatory</h3>
+                        </div>
+
+                        <div class="document-item">
+                            <div class="doc-meta">
+                                <span class="doc-main">DPIIT Recognition</span>
+                                <span class="doc-subtext">Verified • Valid until 2028</span>
+                            </div>
+                            <span class="tag-flat" style="background: #ECFDF5; color: #065F46; border-color: #A7F3D0;">VERIFIED</span>
+                        </div>
+
+                        <div class="document-item">
+                            <div class="doc-meta">
+                                <span class="doc-main">SEBI Registration Certificate</span>
+                                <span class="doc-subtext">Category I AIF • Updated Feb 2026</span>
+                            </div>
+                            <button class="btn btn-outline btn-large" style="padding: 8px 16px;">View</button>
+                        </div>
+
+                        <div class="document-item">
+                            <div class="doc-meta">
+                                <span class="doc-main">TBI Recognition</span>
+                                <span class="doc-subtext">Upload approval document to enable TBI-specific schemes</span>
+                            </div>
+                            <button class="btn btn-primary btn-large" style="padding: 8px 16px;">Upload</button>
+                        </div>
+                    </div>
+
+                    <!-- 6. Role Switch -->
+                    <div class="card" style="padding: 0; overflow: hidden; border: none;">
+                        <div class="role-switch-box">
+                            <div>
+                                <div style="font-weight: 700; color: var(--color-primary-dark); font-size: 1.125rem;">Switch to Founder View</div>
+                                <div style="font-size: 0.875rem; color: var(--color-text-secondary); margin-top: 0.5rem;">
+                                    Manage your own startup profiles or apply for programs as an entrepreneur.
+                                </div>
+                            </div>
+                            <a href="dashboard.html" class="btn btn-primary btn-large" style="text-decoration: none;">Launch Dashboard →</a>
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; margin-top: var(--spacing-xl);">
+                        <p style="font-size: 0.8125rem; color: var(--color-text-secondary); opacity: 0.6;">
+                            Profile visibility: <span style="color: #059669; font-weight: 600;">Public to Government Nodes</span> • Last updated March 3, 2026
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+
+</html>

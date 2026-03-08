@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FundMe | Startup Profile</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Profile specific layout */
+        .profile-container {
+            max-width: 900px;
+            /* More focused width for balanced layout */
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xl);
+            /* Tightened vertical rhythm */
+            padding-bottom: var(--spacing-2xl);
+        }
+
+        /* Page Level Header - Softer & Less Aggressive */
+        .page-header {
+            margin-bottom: var(--spacing-xl);
+            padding-top: var(--spacing-md);
+        }
+
+        .page-header h2 {
+            font-size: 1.75rem;
+            /* Scaled down */
+            font-weight: 700;
+            /* Softer weight */
+            color: var(--color-primary-dark);
+            margin: 0;
+            letter-spacing: -0.02em;
+        }
+
+        /* Section Headings - Consistent Scaling */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-xl);
+            padding-bottom: var(--spacing-sm);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .section-title {
+            font-size: 1.125rem;
+            /* Micro-scaled for hierarchy */
+            font-weight: 700;
+            color: var(--color-primary-dark);
+            margin: 0;
+            text-align: left;
+        }
+
+        .btn-edit {
+            font-size: 0.8125rem;
+            color: var(--color-accent);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .btn-edit:hover {
+            color: var(--color-accent-hover);
+        }
+
+        /* Info Display Grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--spacing-xl) var(--spacing-2xl);
+        }
+
+        .info-block {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .info-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            /* Muted label weight */
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .info-value {
+            font-size: 0.9375rem;
+            /* Micro-scaled value text */
+            color: var(--color-text-main);
+            font-weight: 500;
+            line-height: 1.5;
+        }
+
+        /* Profile Strength Section - High Contrast Metric */
+        .strength-bar-container {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .strength-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 12px;
+        }
+
+        .strength-header .info-label {
+            font-size: 0.8125rem;
+        }
+
+        .strength-percentage {
+            font-weight: 700;
+            color: var(--color-accent);
+            font-size: 1rem;
+            /* Micro-scaled metric */
+            line-height: 1;
+        }
+
+        .strength-bar-bg {
+            height: 8px;
+            /* Extra slim progress bar */
+            background: #F3F4F6;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .strength-bar-fill {
+            height: 100%;
+            background: var(--color-accent);
+            width: 75%;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .checklist-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--spacing-md) var(--spacing-xl);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .check-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.9375rem;
+            /* Larger font size */
+            color: var(--color-text-secondary);
+            padding: 6px 0;
+        }
+
+        .check-item.done {
+            color: var(--color-text-main);
+            font-weight: 500;
+        }
+
+        .status-marker {
+            width: 8px;
+            height: 8px;
+            flex-shrink: 0;
+        }
+
+        .status-marker.done {
+            background-color: var(--color-accent);
+        }
+
+        .status-marker.todo {
+            background-color: var(--color-border-hover);
+        }
+
+        .helper-text {
+            font-size: 0.8125rem;
+            color: var(--color-text-secondary);
+            margin-top: 8px;
+            display: block;
+        }
+
+        .btn-large {
+            padding: 10px 20px;
+            /* Micro-scaled button */
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        /* Quick Snapshot - Integrated & Clean */
+        .snapshot-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-xl);
+            margin-top: var(--spacing-xl);
+            padding-top: var(--spacing-xl);
+            border-top: 1px solid var(--color-border);
+        }
+
+        /* Documents Section - Structured Rows */
+        .document-item {
+            padding: var(--spacing-lg) 0;
+            /* Micro-scaled rows */
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .document-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .doc-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .doc-main {
+            font-weight: 600;
+            /* Muted weight */
+            font-size: 1rem;
+            color: var(--color-text-main);
+        }
+
+        .doc-subtext {
+            font-size: 0.8125rem;
+            color: var(--color-text-secondary);
+            line-height: 1.4;
+        }
+
+        .tag-flat {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #F9FAFB;
+            border: 1px solid var(--color-border);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+            margin-right: 6px;
+        }
+
+        /* Adjustments removed to match standard container */
+
+        @media (max-width: 768px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-container {
+                padding: 0 var(--spacing-md);
+            }
+
+            .page-header h2 {
+                font-size: 1.75rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <span class="sidebar-logo">FundMe.</span>
+                <button class="sidebar-toggle" id="sidebar-toggle">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+                    </svg>
+                </button>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
+                    </svg>
+                    <span class="nav-item-label">Dashboard</span>
+                </a>
+                <a href="explorer.html" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path
+                            d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+                    </svg>
+                    <span class="nav-item-label">Explorer</span>
+                </a>
+                <a href="saved.html" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z" />
+                    </svg>
+                    <span class="nav-item-label">Saved</span>
+                </a>
+                <a href="applications.html" class="nav-item" data-tooltip="Applications">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path
+                            d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
+                    </svg>
+                    <span class="nav-item-label">Applications</span>
+                </a>
+                <a href="profile.html" class="nav-item active" data-tooltip="Startup Profile">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path
+                            d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z" />
+                    </svg>
+                    <span class="nav-item-label">Startup Profile</span>
+                </a>
+                <div class="sidebar-divider"></div>
+                <a href="settings.html" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path
+                            d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84a.484.484 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.488.488 0 0 0-.59.22L2.09 8.83a.488.488 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.57 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
+                    </svg>
+                    <span class="nav-item-label">Settings</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Topbar -->
+            <header class="topbar">
+                <button class="btn btn-outline" id="menu-toggle"
+                    style="margin-right: 1rem; padding: 4px 8px; display: none;">☰</button>
+                <h1 class="topbar-title">Startup Profile</h1>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div style="font-size: 0.875rem; text-align: right;">
+                        <div style="font-weight: 600;">Acme Corp</div>
+                        <div style="font-size: 0.75rem; color: var(--color-text-secondary);">Early revenue • Fintech
+                        </div>
+                    </div>
+                    <div style="width: 32px; height: 32px; background: #E5E7EB;"></div>
+                </div>
+            </header>
+
+            <div class="container" style="padding-top: var(--spacing-xl);">
+
+                <div class="profile-container">
+
+                    <!-- 1. Profile Strength (Polished Metrics) -->
+                    <div class="card">
+                        <div class="strength-bar-container">
+                            <div class="strength-header">
+                                <span class="info-label">Profile Strength</span>
+                                <span class="strength-percentage">75% Complete</span>
+                            </div>
+                            <div class="strength-bar-bg">
+                                <div class="strength-bar-fill"></div>
+                            </div>
+                        </div>
+
+                        <div class="checklist-container">
+                            <div class="check-item done"><span class="status-marker done"></span> Startup basics — Done
+                            </div>
+                            <div class="check-item done"><span class="status-marker done"></span> Funding preferences —
+                                Done</div>
+                            <div class="check-item"><span class="status-marker todo"></span> Pitch deck — Missing</div>
+                            <div class="check-item"><span class="status-marker todo"></span> Executive summary — Missing
+                            </div>
+                        </div>
+
+                        <div style="text-align: left;">
+                            <button class="btn btn-primary btn-large">Improve Match Score</button>
+                            <span class="helper-text">Completing missing items increases match accuracy.</span>
+                        </div>
+                    </div>
+
+                    <!-- 2. Company Overview -->
+                    <div class="card">
+                        <div class="section-header">
+                            <h3 class="section-title">Company Overview</h3>
+                            <a class="btn-edit">EDIT</a>
+                        </div>
+                        <div class="info-grid">
+                            <div class="info-block">
+                                <span class="info-label">Startup Name</span>
+                                <span class="info-value">Acme Corp</span>
+                            </div>
+                            <div class="info-block">
+                                <span class="info-label">Website</span>
+                                <span class="info-value">https://acme.finance</span>
+                            </div>
+                            <div class="info-block" style="grid-column: span 2;">
+                                <span class="info-label">Company Description</span>
+                                <p class="info-value" style="font-weight: 400; line-height: 1.6;">
+                                    Building institutional-grade financial intelligence layer for the next generation of
+                                    global startups and high-growth companies.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Quick Snapshot Row -->
+                        <div class="snapshot-row">
+                            <div class="info-block">
+                                <span class="info-label">Sector</span>
+                                <span class="info-value">Fintech</span>
+                            </div>
+                            <div class="info-block">
+                                <span class="info-label">Current Stage</span>
+                                <span class="info-value">Early Revenue</span>
+                            </div>
+                            <div class="info-block">
+                                <span class="info-label">Headquarters</span>
+                                <span class="info-value">New York, USA</span>
+                            </div>
+                            <div class="info-block">
+                                <span class="info-label">Team Size</span>
+                                <span class="info-value">11 - 50</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Team & Traction -->
+                    <div class="card">
+                        <div class="section-header">
+                            <h3 class="section-title">Team & Traction</h3>
+                            <a class="btn-edit">EDIT</a>
+                        </div>
+                        <div class="info-grid">
+                            <div class="info-block">
+                                <span class="info-label">Team Size</span>
+                                <span class="info-value">11 - 50 Employees</span>
+                            </div>
+                            <div class="info-block">
+                                <span class="info-label">Annual Revenue Range</span>
+                                <span class="info-value">$500k - $2M</span>
+                            </div>
+                            <div class="info-block">
+                                <span class="info-label">TRL Level</span>
+                                <span class="info-value">TRL 7</span>
+                            </div>
+                            <div class="info-block">
+                                <span class="info-label">Founded</span>
+                                <span class="info-value">January 2024</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Funding Preferences -->
+                    <div class="card">
+                        <div class="section-header">
+                            <h3 class="section-title">Funding Preferences</h3>
+                            <a class="btn-edit">EDIT</a>
+                        </div>
+                        <div class="info-grid" style="margin-bottom: var(--spacing-xl);">
+                            <div class="info-block">
+                                <span class="info-label">Target Funding</span>
+                                <span class="info-value">$1,500,000</span>
+                            </div>
+                            <div class="info-block">
+                                <span class="info-label">Geography</span>
+                                <span class="info-value">Global (US Primary)</span>
+                            </div>
+                        </div>
+                        <div class="info-block">
+                            <span class="info-label">Preferred Types</span>
+                            <div style="margin-top: 12px;">
+                                <span class="tag-flat">Grant (Non-dilutive)</span>
+                                <span class="tag-flat">Seed Equity</span>
+                                <span class="tag-flat">Venture Debt</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5. Essential Documents (Polished Metadata) -->
+                    <div class="card">
+                        <div class="section-header">
+                            <h3 class="section-title">Essential Documents</h3>
+                        </div>
+
+                        <div class="document-item">
+                            <div class="doc-meta">
+                                <span class="doc-main">Pitch Deck</span>
+                                <span class="doc-subtext">Required for 92% of matches • PDF preferred</span>
+                            </div>
+                            <button class="btn btn-primary btn-large" style="padding: 8px 16px;">Upload</button>
+                        </div>
+
+                        <div class="document-item">
+                            <div class="doc-meta">
+                                <span class="doc-main">Executive Summary</span>
+                                <span class="doc-subtext">Required for grants • 2 pages max</span>
+                            </div>
+                            <button class="btn btn-primary btn-large" style="padding: 8px 16px;">Upload</button>
+                        </div>
+
+                        <div class="document-item">
+                            <div class="doc-meta">
+                                <span class="doc-main">Financial Road Map</span>
+                                <span class="doc-subtext">financial_v2_acme.pdf • 1.2 MB • Updated Feb 20, 2026</span>
+                            </div>
+                            <button class="btn btn-outline btn-large" style="padding: 8px 16px;">Replace</button>
+                        </div>
+
+                    </div>
+
+                    <div style="text-align: center; margin-top: var(--spacing-xl);">
+                        <p style="font-size: 0.8125rem; color: var(--color-text-secondary); opacity: 0.6;">Profile last
+                            synchronized on Feb 21, 2026</p>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+
+</html>
