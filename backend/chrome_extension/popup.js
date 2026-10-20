@@ -37,6 +37,10 @@ function getApiUrl(pathname) {
 }
 
 async function apiFetch(pathname, options = {}) {
+    const { fundmeSessionToken, fundmeBaseUrl } = await chrome.storage.local.get(['fundmeSessionToken', 'fundmeBaseUrl']);
+    if (!fundmeSessionToken || new URL(getBaseUrl()).origin !== new URL(fundmeBaseUrl).origin) {
+        throw new Error('Sign in to FundMe and start Smart Apply again.');
+    }
     const config = {
         headers: { 'Content-Type': 'application/json' },
         ...options
@@ -45,6 +49,7 @@ async function apiFetch(pathname, options = {}) {
     if (config.body && typeof config.body === 'object') {
         config.body = JSON.stringify(config.body);
     }
+    config.headers.Authorization = `Bearer ${fundmeSessionToken}`;
 
     const res = await fetch(getApiUrl(pathname), config);
     const data = await res.json().catch(() => ({}));

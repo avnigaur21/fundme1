@@ -18,7 +18,7 @@ const SECTOR_KEYWORDS = {
   'AgriTech':      ['agri', 'agriculture', 'farming', 'millet', 'crop', 'soil', 'food processing', 'agripreneur', 'nutrihub'],
   'FinTech':       ['fintech', 'financial', 'payment', 'banking', 'insurance', 'lending', 'credit'],
   'HealthTech':    ['health', 'medtech', 'medical', 'biotech', 'pharma', 'clinical', 'diagnostics', 'telemedicine'],
-  'EdTech':        ['edtech', 'education', 'learning', 'university', 'campus fund'],
+  'EdTech':        ['edtech', 'education', 'educational technology', 'campus fund'],
   'CleanTech':     ['cleantech', 'clean tech', 'renewable', 'solar', 'wind', 'climate', 'sustainability', 'carbon'],
   'DeepTech':      ['deeptech', 'deep tech', 'quantum', 'semiconductor', 'hardware', 'space', 'defence', 'defense', 'drones', 'military'],
   'Social Impact': ['social enterprise', 'social impact', 'ngo', 'nonprofit', 'inclusion', 'rural development', 'sanitation'],
@@ -31,10 +31,12 @@ const SECTOR_KEYWORDS = {
 
 function inferSector(text) {
   const lower = (text || '').toLowerCase();
+  if (/\b(all sectors|sector[- ]agnostic|any sector)\b/.test(lower)) return 'All Sectors';
+  const matches = [];
   for (const [sector, keywords] of Object.entries(SECTOR_KEYWORDS)) {
-    if (keywords.some(kw => lower.includes(kw))) return sector;
+    if (keywords.some(kw => new RegExp(`\\b${kw}\\b`, 'i').test(lower))) matches.push(sector);
   }
-  return 'All Sectors';
+  return matches.join(', ');
 }
 
 // ─── Location inference ──────────────────────────────────────────────────────
@@ -78,7 +80,7 @@ function cleanListingItem(item) {
     amount:      item.amount || 'Variable',
     deadline:    item.deadline || 'Rolling',
     stage:       item.stage || '',
-    sector:      inferSector(fullText),
+    sector:      item.sector || inferSector(fullText),
     location:    inferLocation(fullText),
     link:        item.link || '',
     slug:        item.slug || '',

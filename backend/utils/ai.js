@@ -29,7 +29,7 @@ function parseKeyFile(keyName) {
       }
     }
 
-    return lines[0] || "";
+    return "";
   } catch (err) {
     console.warn(`⚠️  Could not read key file for ${keyName}: ${err.message}`);
     return "";
@@ -51,14 +51,17 @@ function getGoogleKey() {
 // ─── Raw provider helpers ──────────────────────────────────────────────────────
 
 async function callGroq(prompt, model) {
+  if (model === 'llama-3.3-70b-versatile') model = process.env.GROQ_MODEL || 'qwen/qwen3.8-27b';
+  if (model === 'llama-3.1-8b-instant') model = process.env.GROQ_FALLBACK_MODEL || 'openai/gpt-oss-20b';
   const groqKey = getGroqKey();
   if (!groqKey) return null;
   try {
     console.log(`✨ AI: Trying Groq (${model})...`);
     const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
+      signal: AbortSignal.timeout(45000),
       headers: { "Authorization": `Bearer ${groqKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model, messages: [{ role: "user", content: prompt }], temperature: 0.1 })
+      body: JSON.stringify({ model, messages: [{ role: "user", content: prompt }], temperature: 0.1, max_tokens: 4096 })
     });
     if (res.ok) {
       const data = await res.json();
@@ -88,6 +91,7 @@ async function callOpenRouterModel(prompt, model) {
     console.log(`✨ AI: Trying OpenRouter (${model})...`);
     const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
+      signal: AbortSignal.timeout(45000),
       headers: {
         "Authorization": `Bearer ${orKey}`,
         "Content-Type": "application/json",
@@ -115,11 +119,9 @@ async function callOpenRouterModel(prompt, model) {
 
 async function callOpenRouterFree(prompt) {
   const freeModels = [
-    'meta-llama/llama-3.1-8b-instruct:free',
-    'google/gemma-2-9b-it:free',
-    'mistralai/mistral-7b-instruct:free',
-    'microsoft/phi-3-mini-128k-instruct:free',
-    'meta-llama/llama-3-8b-instruct:free'
+    process.env.OPENROUTER_MODEL || 'google/gemma-4-26b-a4b-it:free',
+    'google/gemma-4-31b-it:free',
+    'minimax/minimax-m3.1-flash:free'
   ];
   
   for (const model of freeModels) {

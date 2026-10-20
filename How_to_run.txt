@@ -1,4 +1,13 @@
-npm run install-all  ## all dependencies for frontend and backend (Run this only once when you download the project for 1st time and ignore the vulnerability warnings)
-npm run build   ## build the frontend
-npm run dev     ## run the frontend and backend
-The 2nd and 3rd command will run the frontend and backend these have to be run every time you start the project.
+npm run install-all       ## first run only
+npm run build             ## build frontend for backend/static deployment
+
+## Development: open two terminals in the project root
+npm run backend           ## API at http://localhost:5000
+npm run frontend          ## React app at http://localhost:3000
+
+## Production-style local run after `npm run build`
+npm run server            ## backend serves the build at http://localhost:5000
+
+Before starting, copy `.env.example` to `.env` and
+`backend/.env.example` to `backend/.env`, then add your real keys.
+Run `backend/supabase/schema.sql` once in the Supabase SQL Editor.

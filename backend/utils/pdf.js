@@ -14,19 +14,26 @@ async function extractTextFromPDF(dataBuffer) {
     let text = "";
     if (pdfParse.PDFParse) {
       console.log("🔍 Using PDFParse Class...");
-      const parser = new pdfParse.PDFParse(uint8Array);
-      if (typeof parser.load === 'function') await parser.load();
-      const result = await parser.getText();
+      const parser = new pdfParse.PDFParse({ data: uint8Array });
+      let result;
+      try {
+        result = await parser.getText();
+      } finally {
+        await parser.destroy();
+      }
       
-      // Handle if result is an object/array
+      // pdf-parse v2 returns `{ pages: [{ text: ... }] }`.
+      // Flatten that structure before sending it to the profile prompt;
+      // passing the JSON wrapper wastes context and can make extraction fail.
       if (typeof result === 'string') {
         text = result;
+      } else if (result && Array.isArray(result.pages)) {
+        text = result.pages.map(page => page?.text || '').join('\n');
       } else if (result && result.items) {
         text = result.items.map(i => i.str || "").join(" ");
       } else {
-        text = JSON.stringify(result);
+        text = result?.text || '';
       }
-      console.log(`📝 Raw text sample: "${text.substring(0, 100)}..."`);
     } else if (typeof pdfParse === 'function') {
       const data = await pdfParse(dataBuffer);
       text = data.text || "";

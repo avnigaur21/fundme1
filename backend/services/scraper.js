@@ -1,4 +1,5 @@
 const axios = require('axios');
+const { validateWebUrl, publicWebOptions } = require('../utils/publicWeb');
 const cheerio = require('cheerio');
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
@@ -442,6 +443,59 @@ function parseListingPage(html) {
     });
   }
 
+  // The site currently renders cards through Next.js server data instead of
+  // exposing the old HTML card classes. The payload contains repeated grant
+  // objects with title, provider, slug, summary, amount and deadline fields.
+  // Parse those objects as a final fallback so a markup redesign does not
+  // silently turn the platform's opportunity feed into an empty list.
+  if (items.length === 0) {
+    const decode = (value) => {
+      try { return JSON.parse(`"${value}"`); } catch { return String(value).replace(/\\u0026/g, '&').replace(/\\"/g, '"'); }
+    };
+    const pick = (chunk, key) => {
+      const match = chunk.match(new RegExp(`"${key}"\\s*:\\s*(?:"((?:\\\\.|[^"\\\\])*)"|([^,}]+))`));
+      return match ? decode(match[1] !== undefined ? match[1] : match[2].trim()) : '';
+    };
+    const amountText = (value) => {
+      const amount = Number(value);
+      if (!Number.isFinite(amount) || amount <= 0) return 'Variable';
+      if (amount >= 10000000) return `Up to ₹${(amount / 10000000).toFixed(1).replace(/\\.0$/, '')} Cr`;
+      if (amount >= 100000) return `Up to ₹${Math.round(amount / 100000)} Lakh`;
+      return `Up to ₹${amount.toLocaleString('en-IN')}`;
+    };
+
+    // Next.js embeds these objects inside a quoted script string (`\"grant\":{`).
+    // Normalize only the structural escapes before splitting into objects.
+    const normalizedPayload = html.replace(/\\"/g, '"').replace(/\\\{/g, '{');
+    normalizedPayload.split('"grant":{').slice(1).forEach((chunk) => {
+      const bounded = chunk.split('},"loggedIn"')[0];
+      const title = pick(bounded, 'title');
+      const slug = pick(bounded, 'slug');
+      if (!title || title.length < 5 || !slug || seenSlugs.has(slug)) return;
+      const deadlineRaw = pick(bounded, 'deadline');
+      let deadline = 'Rolling';
+      if (deadlineRaw) {
+        const parsedDate = new Date(deadlineRaw);
+        deadline = Number.isNaN(parsedDate.getTime()) ? deadlineRaw : parsedDate.toISOString().slice(0, 10);
+      }
+      const category = pick(bounded, 'category').toLowerCase();
+      const type = category === 'accelerator' ? 'Accelerator' : category === 'incubator' ? 'Incubation' : category === 'fellowship' ? 'Fellowship' : 'Grant';
+      seenSlugs.add(slug);
+      items.push({
+        title,
+        description: pick(bounded, 'short_description') || title,
+        provider: pick(bounded, 'provider') || 'Startup Grants India',
+        type,
+        stage: '',
+        amount: amountText(pick(bounded, 'amountMax')),
+        deadline,
+        link: `${BASE_URL}/${slug}`,
+        slug,
+      });
+    });
+    if (items.length > 0) console.log(`✅ Parsed ${items.length} Next.js grant payloads`);
+  }
+
   return items;
 }
 
@@ -588,10 +642,12 @@ async function scrapeStartupGrants() {
 // ─── DETAIL PAGE SCRAPER ─────────────────────────────────────────────────────
 
 async function scrapeDetails(link, retryCount = 0) {
+  validateWebUrl(link);
   try {
     console.log(`🔍 Scraping details for ${link}${retryCount > 0 ? ` (retry ${retryCount}/${MAX_RETRIES})` : ''}...`);
     
     const response = await axios.get(link, {
+      ...publicWebOptions,
       headers: {
         'User-Agent': USER_AGENT,
         Accept: 'text/html,application/xhtml+xml',
@@ -626,13 +682,17 @@ async function scrapeDetails(link, retryCount = 0) {
     
     // Remove unwanted elements more comprehensively
     $('script, style, noscript, nav, footer, header, iframe, svg, .sidebar, .ads, .advertisement, .popup, .modal').remove();
+    // Preserve word and paragraph boundaries before flattening HTML.
+    $('h1,h2,h3,h4,p,li,div,section,br').each((_, el) => {
+      $(el).prepend('\n').append('\n');
+    });
     
     // Try multiple selectors for main content
     const $main = $('main, article, [role="main"], .main-content, .content, .post-content').first();
     const rawText = ($main.length ? $main.text() : $('body').text())
       .replace(/(Loading\.\.\.|Sign in or create|Coming Soon|COMING SOON|404|Page not found)/gi, '')
-      .replace(/(active|apply now|learn more|browse deals|explore perks|click here|read more)/gi, '')
-      .replace(/\s+/g, ' ')
+      .replace(/\b(apply now|learn more|browse deals|explore perks|click here|read more)\b/gi, '')
+      .replace(/[ \t]+/g, ' ').replace(/\n\s*\n/g, '\n')
       .trim();
 
     if (rawText.length < 50) {
@@ -761,6 +821,21 @@ function extractBetween(text, start, endMarkers = []) {
     .trim());
 }
 
+function extractSectionByHeading($, headingText) {
+  const heading = $('h2, h3').filter((_, el) => $(el).text().replace(/\s+/g, ' ').trim().toLowerCase() === headingText.toLowerCase()).first();
+  if (!heading.length) return '';
+
+  // Current StartupGrantsIndia pages wrap each section as one bordered div:
+  // <div ...><h2>Section</h2><div>section content</div></div>.
+  // Reading that parent prevents recommendation cards and footer copy from
+  // being mixed into the current grant's eligibility or benefits.
+  const section = heading.parent();
+  return section.text()
+    .replace(new RegExp(`^${headingText}`, 'i'), '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function dedupeSentences(text) {
   if (!text) return '';
   const parts = text.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [text];
@@ -793,6 +868,12 @@ function extractOpportunityDetailDataFromHtml(html, pageUrl) {
 
   const aboutIndex = text.indexOf('About this grant');
   const headerText = aboutIndex === -1 ? text : text.slice(0, aboutIndex);
+  // Only links preceding the description belong to this grant; recommendations
+  // lower on the page contain unrelated stage links.
+  const stage = [...new Set($('a[href*="/stage/"]').map((i, el) => $(el).text().trim()).get()
+    .filter(label => label.length < 35 && headerText.includes(label)))].join(', ');
+  const sector = [...new Set($('a[href*="/sector/"]').map((i, el) => $(el).text().trim()).get()
+    .filter(label => label.length < 45 && headerText.includes(label)))].join(', ');
   const typeIndex = headerText.lastIndexOf('Type');
   const locationIndex = headerText.lastIndexOf('Location');
   const applyIndex = headerText.indexOf('Apply Now', locationIndex);
@@ -807,13 +888,14 @@ function extractOpportunityDetailDataFromHtml(html, pageUrl) {
     ? headerText.slice(locationIndex + 'Location'.length, applyIndex === -1 ? headerText.length : applyIndex).trim()
     : '';
 
-  const about = extractBetween(text, 'About this grant', ['Provider', 'AI Overview', 'Eligibility']);
-  const eligibility = extractBetween(text, 'Eligibility', ['Benefits & Funding']);
-  const benefits = extractBetween(text, 'Benefits & Funding', ['Timelines & Process']);
-  const timeline = extractBetween(text, 'Timelines & Process', ['Apply for this program', 'Startup Deals', 'Similar Grants']);
+  const about = extractSectionByHeading($, 'About this grant') || extractBetween(text, 'About this grant', ['Provider', 'AI Overview', 'Eligibility']);
+  const eligibilityText = extractSectionByHeading($, 'Eligibility') || extractBetween(text, 'Eligibility', ['Benefits & Funding']);
+  const eligibility = /sign up|sign in|unlock|see if you.re eligible/i.test(eligibilityText) ? '' : eligibilityText;
+  const benefits = extractSectionByHeading($, 'Benefits & Funding') || extractBetween(text, 'Benefits & Funding', ['Timelines & Process']);
+  const timeline = extractSectionByHeading($, 'Timelines & Process') || extractBetween(text, 'Timelines & Process', ['Apply for this program', 'Startup Deals', 'Similar Grants']);
 
   const amountMatch = benefits.match(/Amount(.+?)Fund Type/) || benefits.match(/Offers\s+(.+?)\s+as/i);
-  const amount = amountMatch ? amountMatch[1].trim() : extractAmount(benefits || text);
+  const amount = extractAmount(amountMatch ? amountMatch[1] : benefits);
   const deadline = formatDate(grant.validThrough) || extractDeadline(timeline || text);
 
   return {
@@ -821,6 +903,8 @@ function extractOpportunityDetailDataFromHtml(html, pageUrl) {
     provider: grant.funder?.name || '',
     description,
     about,
+    stage,
+    sector,
     eligibility,
     benefits,
     timeline,

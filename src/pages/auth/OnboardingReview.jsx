@@ -58,6 +58,15 @@ export default function OnboardingReview() {
     try {
       const payload = { ...profile };
       delete payload.id; // Ensure we don't send any stale IDs
+
+      const hasContent = [
+        "startup_name", "startup_overview", "problem_statement",
+        "solution_summary", "target_customers", "business_model",
+        "traction_summary", "website"
+      ].some((key) => String(payload[key] || "").trim().length > 0);
+      if (!hasContent) {
+        throw new Error("No profile details were extracted. Go back and upload the pitch deck again.");
+      }
       
       if (payload.team_size) {
         const numeric = String(payload.team_size).match(/\d+/);

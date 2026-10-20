@@ -1,5 +1,5 @@
 // ─── GUARD: Skip all logic on FundMe's own app pages ────────────────────────
-const _isFundMeAppPage = /^(https?:\/\/(localhost|127\.0\.0\.1|fundme-self\.vercel\.app|fundme-final-production\.up\.railway\.app)(:\d+)?)/i.test(window.location.href);
+const _isFundMeAppPage = ['localhost', '127.0.0.1', 'fundme-self.vercel.app', 'fundme-final-production.up.railway.app'].includes(window.location.hostname);
 if (_isFundMeAppPage) {
     document.documentElement.dataset.fundmeExtensionInstalled = 'true';
 
@@ -9,15 +9,23 @@ if (_isFundMeAppPage) {
             window.postMessage({ source: 'fundme-extension', type: 'FUNDME_EXTENSION_PONG', version: '1.0.0' }, '*');
         }
         if (event.data?.type === 'FUNDME_STASH_SESSION') {
-            const { user_id, opportunity_id, baseUrl } = event.data;
+            const { user_id, opportunity_id, baseUrl, session_token } = event.data;
             chrome.storage.local.set({
                 fundmeUserId: user_id,
+                fundmeSessionToken: session_token,
                 fundmeOpportunityId: opportunity_id,
                 fundmeBaseUrl: baseUrl || 'https://fundme-final-production.up.railway.app'
             });
         }
     });
     // Silent early exit — do NOT throw (throws show as "Uncaught Error" in extension panel)
+}
+
+async function authenticatedFetch(url, options = {}) {
+    const { fundmeBaseUrl, fundmeSessionToken } = await chrome.storage.local.get(['fundmeBaseUrl', 'fundmeSessionToken']);
+    if (!fundmeSessionToken) throw new Error('Sign in to FundMe and start Smart Apply again.');
+    if (new URL(url).origin !== new URL(fundmeBaseUrl).origin) throw new Error('Unexpected API destination.');
+    return fetch(url, { ...options, headers: { ...options.headers, Authorization: `Bearer ${fundmeSessionToken}` } });
 }
 
 function cssPathFor(element) {
@@ -570,12 +578,12 @@ function startReactiveWatcher(payload) {
 
                     // 2. Fetch context if missing (we need profile and opportunity)
                     const [profile, opportunity] = await Promise.all([
-                        fetch(`${API_BASE}/founder/profile?user_id=${encodeURIComponent(userId)}`).then(r => r.json()),
-                        fetch(`${API_BASE}/opportunities/${encodeURIComponent(opportunityId)}`).then(r => r.json())
+                        authenticatedFetch(`${API_BASE}/founder/profile?user_id=${encodeURIComponent(userId)}`).then(r => r.json()),
+                        authenticatedFetch(`${API_BASE}/opportunities/${encodeURIComponent(opportunityId)}`).then(r => r.json())
                     ]);
 
                     // 3. Generate answers for new fields
-                    const generated = await fetch(`${API_BASE}/ai/generate-draft`, {
+                    const generated = await authenticatedFetch(`${API_BASE}/ai/generate-draft`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -705,7 +713,7 @@ async function checkStagedSession() {
         const API_BASE = `${baseUrl}/api`;
 
         // Ask the server: "is this URL a known apply link for an active session?"
-        const res = await fetch(`${API_BASE}/extension/session?external_url=${encodeURIComponent(url)}`);
+        const res = await authenticatedFetch(`${API_BASE}/extension/session?external_url=${encodeURIComponent(url)}`);
 
         // If server returns 404 / non-ok → this page is NOT a tracked apply link → stay silent
         if (!res.ok) return;
@@ -735,7 +743,7 @@ async function checkStagedSession() {
 
         // Form fields found — try to auto-fill from saved draft
         try {
-            const draftRes = await fetch(`${API_BASE}/drafts/by-opportunity?user_id=${encodeURIComponent(stagedSession.user_id)}&opportunity_id=${encodeURIComponent(stagedSession.opportunity_id)}`);
+            const draftRes = await authenticatedFetch(`${API_BASE}/drafts/by-opportunity?user_id=${encodeURIComponent(stagedSession.user_id)}&opportunity_id=${encodeURIComponent(stagedSession.opportunity_id)}`);
             if (draftRes.ok) {
                 const draft = await draftRes.json();
                 if (draft && draft.form_fields && Object.keys(draft.form_fields).length > 0) {
@@ -748,7 +756,7 @@ async function checkStagedSession() {
 
                 // SECOND LAYER: Smart Profile Fallback (if draft was empty or didn't catch everything)
                 console.log('🧠 FundMe: Applying Smart Profile Fallback...');
-                const profileRes = await fetch(`${API_BASE}/founder/profile?user_id=${encodeURIComponent(stagedSession.user_id)}`);
+                const profileRes = await authenticatedFetch(`${API_BASE}/founder/profile?user_id=${encodeURIComponent(stagedSession.user_id)}`);
                 if (profileRes.ok) {
                     const profile = await profileRes.json();
                     const profileResult = fillFromProfile(profile);
@@ -851,7 +859,7 @@ async function handleSuccess() {
         const baseUrl = (settings.fundmeBaseUrl || 'https://fundme-final-production.up.railway.app').replace(/\/$/, '');
         const API_BASE = `${baseUrl}/api`;
 
-        const res = await fetch(`${API_BASE}/applications`, {
+        const res = await authenticatedFetch(`${API_BASE}/applications`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

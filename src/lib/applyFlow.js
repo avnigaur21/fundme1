@@ -1,5 +1,5 @@
-import { apiStageExtensionSession } from "./api";
-import { getUserId } from "./auth";
+import { apiStageExtensionSession, API_BASE } from "./api";
+import { getUserId, getUser } from "./auth";
 
 export const getApplyLink = (item = {}) =>
   item.apply_link ||
@@ -16,7 +16,8 @@ export const stageExtensionContext = ({ opportunity_id, external_url }) => {
     type: "FUNDME_STASH_SESSION",
     user_id: getUserId(),
     opportunity_id,
-    baseUrl: window.location.origin,
+    session_token: getUser()?.session_token,
+    baseUrl: new URL(API_BASE, window.location.origin).href.replace(/\/api$/, ""),
   }, "*");
 
   return apiStageExtensionSession({ opportunity_id, external_url });

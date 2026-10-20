@@ -5,8 +5,7 @@ import { CheckCircle2, Bookmark, BookmarkCheck, Sparkles, ArrowUpRight, Loader2,
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { apiSaveOpp, apiUnsaveOpp, apiCreateDraft, apiGetProfile, errMsg } from "@/lib/api";
-import axios from "axios";
-import { API_BASE } from "@/lib/api";
+import { http } from "@/lib/api";
 import { ExtensionInstallModal } from "@/components/ExtensionInstallModal";
 import { stageExtensionContext } from "@/lib/applyFlow";
 import { checkExtensionInstalled } from "@/lib/utils";
@@ -119,7 +118,7 @@ export default function OpportunityCard({ opp, draft, onChange, onSavedChange })
         return;
       }
 
-      const response = await axios.post(`${API_BASE}/ai/eligibility`, {
+      const response = await http.post("/ai/eligibility", {
         profile,
         eligibility: opp.eligibility,
         description: opp.summary,
@@ -150,7 +149,7 @@ export default function OpportunityCard({ opp, draft, onChange, onSavedChange })
       ) : null}
 
       <div>
-        <h3 className="font-display text-xl font-semibold text-slate-900 leading-tight pr-20">{opp.title}</h3>
+        <h3 className={`font-display text-xl font-semibold text-slate-900 leading-tight ${opp.match ? "pr-20" : ""}`}>{opp.title}</h3>
         <div className="mt-2 flex items-center gap-2 text-xs text-slate-500">
           <span className="line-clamp-1">{opp.org}</span>
           {opp.verified && (
@@ -160,6 +159,12 @@ export default function OpportunityCard({ opp, draft, onChange, onSavedChange })
           )}
         </div>
       </div>
+
+      {opp.relevance && <div className="rounded-md bg-slate-50 p-3 text-xs text-slate-700">
+        <p className="font-semibold">{opp.relevance.label}</p>
+        {opp.relevance.reasons.map(reason => <p key={reason} className="mt-1">{reason}</p>)}
+        <p className="mt-1 text-slate-500">Confirm requirements with the provider.</p>
+      </div>}
 
       <div className="flex flex-wrap gap-1.5">
         {opp.sectors?.map((s) => (
@@ -171,7 +176,7 @@ export default function OpportunityCard({ opp, draft, onChange, onSavedChange })
 
       <div className="text-xs">
         <span className="text-slate-500">Deadline:</span>{" "}
-        <span className="text-[var(--accent)] font-semibold">{opp.deadline}</span>
+        <span className="text-[var(--accent)] font-semibold">{opp.deadline || "Not published"}</span>
       </div>
 
       {(opp.eligibility || eligibilityResult) && (
@@ -195,6 +200,7 @@ export default function OpportunityCard({ opp, draft, onChange, onSavedChange })
           </div>
         </div>
       )}
+      {!opp.eligibility && !eligibilityResult && <p className="text-xs text-slate-500">Eligibility criteria unavailable from source. Check the provider’s requirements before applying.</p>}
 
       <p className="text-sm text-slate-600 line-clamp-2">{opp.summary}</p>
 
@@ -212,7 +218,7 @@ export default function OpportunityCard({ opp, draft, onChange, onSavedChange })
         </Button>
       )}
 
-      <div className="grid grid-cols-3 gap-2 pt-1">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 mt-auto">
         <Button onClick={toggleSave} disabled={busy}
           className="btn-press rounded-md font-medium bg-[var(--primary)] hover:bg-[var(--primary-hover)] disabled:opacity-60"
           data-testid={`save-toggle-${opp.opportunity_id}`}>

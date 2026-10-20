@@ -2,16 +2,23 @@
 // When REACT_APP_BACKEND_URL points at the deployed Node server, this module
 // keeps working unchanged.
 import axios from "axios";
-import { getUserId, clearAuth } from "./auth";
+import { getUserId, getUser, clearAuth } from "./auth";
+import { cleanText, cleanAmount, cleanEligibility } from "./opportunityQuality";
+import { sectorLabels } from "./opportunityTaxonomy";
 
-const rawBackend = process.env.REACT_APP_BACKEND_URL || "https://fundme-final-production.up.railway.app";
+const rawBackend = process.env.REACT_APP_BACKEND_URL || "";
 let BACKEND = (rawBackend === "undefined" ? "" : rawBackend).replace(/\/+$/, "");
 if (BACKEND && !BACKEND.startsWith("http")) {
   BACKEND = `https://${BACKEND}`;
 }
 export const API_BASE = `${BACKEND}/api`;
 
-const http = axios.create({ baseURL: API_BASE });
+export const http = axios.create({ baseURL: API_BASE });
+http.interceptors.request.use(config => {
+  const token = getUser()?.session_token;
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
 
 http.interceptors.response.use(
   (r) => r,
@@ -33,15 +40,16 @@ export const normalizeOpp = (o = {}) => ({
   opportunity_id: o.opportunity_id,
   title: o.title,
   org: o.provider || o.org || "",
-  summary: o.description || o.summary || "",
+  summary: cleanText(o.description || o.summary),
   type: o.type,
-  sectors: Array.isArray(o.sector) ? o.sector : (o.sector ? [o.sector] : (o.sectors || [])),
+  sectors: sectorLabels(o.sector || o.sectors),
   stage: o.stage || "",
-  amount: o.amount || "",
+  location: o.location || "",
+  amount: cleanAmount(o.amount),
   deadline: o.deadline || "",
-  eligibility: o.eligibility || "",
+  eligibility: cleanEligibility(o.eligibility),
   benefits: Array.isArray(o.benefits) ? o.benefits : [],
-  verified: o.credibility_source ? true : Boolean(o.verified),
+  verified: o.verified === true,
   link: o.external_apply_url || o.link || "",
   saved: Boolean(o.saved),
   match: o.match_score || o.match || null,
@@ -71,7 +79,11 @@ export const apiGenerateProfile = ({ file, startup_overview, website }) => {
   if (startup_overview) fd.append("startup_overview", startup_overview);
   if (website) fd.append("website", website);
   // Explicitly tell axios to let the browser set the boundary for multipart/form-data
-  return unwrap(http.post("/ai/generate-profile", fd, { headers: { "Content-Type": undefined } }));
+  return unwrap(http.post("/ai/generate-profile", fd, { headers: { "Content-Type": undefined } })).then(response => {
+    // Also enforce this in the client when talking to an older backend.
+    if (website?.trim() && response?.result) response.result.website = website.trim();
+    return response;
+  });
 };
 
 // ---------- opportunities ----------
@@ -89,6 +101,8 @@ export const apiListBusinessOpps = async () => {
   const normalized = filterOpenDeadlines(raw).filter((o) => BUSINESS_TYPES.has(o.type)).map(normalizeOpp);
   return applySavedState(normalized);
 };
+
+export const apiTriggerScraper = () => unwrap(http.get("/trigger-scraper"));
 
 // ---------- saved ----------
 const savedIdsForCurrentUser = async () => {
@@ -246,10 +260,20 @@ export const apiGetProfile = () =>
   });
 
 export const apiSaveProfile = async (data) => {
-  const body = { user_id: getUserId(), ...data };
+  // Always use the locally authenticated user. AI-generated profile objects
+  // may contain a stale/empty user_id from an earlier session.
+  const body = { ...data, user_id: getUserId() };
   // PUT is the canonical update; if the profile doesn't exist, fall back to POST.
   try {
-    return await unwrap(http.put("/founder/profile", body));
+    const saved = await unwrap(http.put("/founder/profile", body));
+    // Treat a null response as a failed save. This protects older deployed
+    // backends that still return 200 for an UPDATE matching zero rows.
+    if (!saved) throw Object.assign(new Error("Profile was not saved"), { response: { status: 404 } });
+    const persisted = await apiGetProfile();
+    if (!persisted || persisted.user_id !== body.user_id) {
+      throw new Error("Profile save could not be verified. Your edits are still here; please retry.");
+    }
+    return persisted;
   } catch (e) {
     if (e.response?.status === 404) {
       return unwrap(http.post("/founder/profile", body));
@@ -265,9 +289,9 @@ export const apiGetMatchScores = async (profile, opportunities) => {
   const lightweightOpps = opportunities.map(o => ({
     opportunity_id: o.opportunity_id,
     title: o.title,
-    description: o.description,
+    description: o.description || o.summary,
     type: o.type,
-    sector: o.sector
+    sector: o.sector || (Array.isArray(o.sectors) ? o.sectors.join(", ") : o.sectors)
   }));
 
   const res = await unwrap(http.post("/ai/match-opportunities", { profile, opportunities: lightweightOpps }));

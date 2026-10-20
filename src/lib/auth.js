@@ -15,6 +15,10 @@ export const getUser = () => {
 
 export const setAuth = (user) => {
   if (!user || !user.user_id) return;
+  const previous = getUser();
+  if (!user.session_token && previous?.user_id === user.user_id) {
+    user = { ...user, session_token: previous.session_token };
+  }
   localStorage.setItem(KEY, user.user_id);
   localStorage.setItem(USER_KEY, JSON.stringify(user));
 };
@@ -24,7 +28,7 @@ export const clearAuth = () => {
   localStorage.removeItem(USER_KEY);
 };
 
-export const isAuthed = () => !!getUserId();
+export const isAuthed = () => !!getUserId() && !!getUser()?.session_token;
 
 // Password rule: ≥8 chars, ≥1 uppercase, ≥1 number.
 export const passwordRules = [

@@ -9,7 +9,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { ExtensionInstallModal } from "@/components/ExtensionInstallModal";
-import { apiListOpportunities, apiSaveOpp, apiUnsaveOpp, apiListSaved, apiCreateDraft, apiGetDraftByOpportunity, apiGetProfile, apiGetMatchScores, errMsg } from "@/lib/api";
+import { apiListOpportunities, apiSaveOpp, apiUnsaveOpp, apiListSaved, apiCreateDraft, apiGetDraftByOpportunity, apiGetProfile, errMsg } from "@/lib/api";
+import { profileRelevance } from "@/lib/opportunityQuality";
 import { stageExtensionContext } from "@/lib/applyFlow";
 import { checkExtensionInstalled } from "@/lib/utils";
 
@@ -39,13 +40,7 @@ export default function OpportunityDetails() {
           setDraft(await apiGetDraftByOpportunity(id));
           
           apiGetProfile().then(profile => {
-            if (profile) {
-              apiGetMatchScores(profile, [found]).then(scores => {
-                if (scores && scores.length > 0) {
-                  setOpp(prev => ({ ...prev, match: scores[0].score }));
-                }
-              }).catch(e => console.error("Failed to fetch match score", e));
-            }
+            setOpp(prev => ({ ...prev, relevance: profileRelevance(profile, found) }));
           }).catch(e => console.error("Failed to fetch profile", e));
           
           // Auto-trigger portal if we just reloaded for extension on THIS page
@@ -255,10 +250,11 @@ export default function OpportunityDetails() {
               <Sparkles size={120} />
             </div>
             <div className="relative z-10">
-              <div className="text-xs uppercase tracking-[0.2em] text-emerald-400 font-bold mb-2">Match Score</div>
-              <div className="text-6xl font-display font-bold mb-2">{opp.match || 0}%</div>
+              <div className="text-xs uppercase tracking-[0.2em] text-emerald-400 font-bold mb-2">Profile relevance</div>
+              <div className="text-xl font-display font-bold mb-2">{opp.relevance?.label || "Profile comparison unavailable"}</div>
+              {opp.relevance?.reasons.map(reason => <p key={reason} className="text-sm mb-2">{reason}</p>)}
               <p className="text-slate-400 text-sm leading-relaxed px-4">
-                High alignment with your tech stack and stage.
+                Based on sector, stage and shared topics. Confirm eligibility with the provider.
               </p>
             </div>
           </motion.div>
@@ -269,9 +265,9 @@ export default function OpportunityDetails() {
               <h3 className="font-bold text-sm text-slate-900">Program Snapshot</h3>
             </div>
             <div className="p-6 space-y-4">
-              <SnapshotItem icon={Calendar} label="Deadline" value={opp.deadline || "Rolling"} color="text-[var(--accent)]" />
+              <SnapshotItem icon={Calendar} label="Deadline" value={opp.deadline || "Not published"} color="text-[var(--accent)]" />
               <SnapshotItem icon={DollarSign} label="Funding" value={opp.amount || "Variable"} color="text-[var(--accent)]" />
-              <SnapshotItem icon={MapPin} label="Location" value={opp.location || "Global / Remote"} />
+              <SnapshotItem icon={MapPin} label="Location" value={opp.location || "Not published"} />
               <SnapshotItem icon={Info} label="Type" value={opp.type || "Grant"} />
             </div>
             <div className="border-t border-slate-100 px-6 py-5">

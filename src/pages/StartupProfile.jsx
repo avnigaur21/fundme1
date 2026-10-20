@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Building2, MapPin, Users, Globe, Sparkles, Save, Loader2 } from "lucide-react";
+import { Building2, MapPin, Users, Globe, Sparkles, Save, Loader2, Upload } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { apiGetProfile, apiSaveProfile, errMsg } from "@/lib/api";
+import { apiGetProfile, apiSaveProfile, apiGenerateProfile, errMsg } from "@/lib/api";
 import { getUser } from "@/lib/auth";
 import { getAvatarInitials } from "@/lib/avatar";
 
@@ -31,10 +31,18 @@ export default function StartupProfile() {
   const [form, setForm] = useState(EMPTY);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [enhancing, setEnhancing] = useState(false);
+  const [showEnhancer, setShowEnhancer] = useState(false);
+  const [enhanceUrl, setEnhanceUrl] = useState("");
+  const [enhanceSummary, setEnhanceSummary] = useState("");
+  const [enhanceFile, setEnhanceFile] = useState(null);
+  const [suggestions, setSuggestions] = useState(null);
+  const [selected, setSelected] = useState({});
+  const [loadError, setLoadError] = useState("");
   const user = getUser();
 
   useEffect(() => {
-    apiGetProfile().then((p) => setForm({ ...EMPTY, ...p })).catch(() => {}).finally(() => setLoading(false));
+    apiGetProfile().then((p) => setForm({ ...EMPTY, ...p })).catch((e) => setLoadError(errMsg(e, "Could not load your profile. Refresh to retry."))).finally(() => setLoading(false));
   }, []);
 
   const update = (k, v) => setForm((f) => ({ ...f, [k]: v }));
@@ -43,7 +51,8 @@ export default function StartupProfile() {
     try {
       const payload = { ...form };
       if (payload.team_size) payload.team_size = Number(payload.team_size);
-      await apiSaveProfile(payload);
+      const saved = await apiSaveProfile(payload);
+      setForm({ ...EMPTY, ...saved });
       toast.success("Profile saved");
       window.dispatchEvent(new Event("profile-updated"));
     } catch (e) {
@@ -53,7 +62,35 @@ export default function StartupProfile() {
     }
   };
 
+  const enhance = async () => {
+    if (!enhanceUrl && !enhanceSummary && !enhanceFile) {
+      toast.error("Add a website, summary, or pitch deck first.");
+      return;
+    }
+    setEnhancing(true);
+    try {
+      const response = await apiGenerateProfile({ file: enhanceFile, startup_overview: enhanceSummary, website: enhanceUrl });
+      const generated = response?.result || response || {};
+      const proposed = Object.fromEntries(Object.keys(EMPTY)
+        .filter(key => generated[key] !== undefined && generated[key] !== null &&
+          String(generated[key]).trim() !== "" && String(generated[key]) !== String(form[key]))
+        .map(key => [key, generated[key]]));
+      if (!Object.keys(proposed).length) {
+        toast.info("No new profile details were found.");
+        return;
+      }
+      setSuggestions(proposed);
+      setSelected(Object.fromEntries(Object.keys(proposed).map(key => [key, !String(form[key] ?? "").trim()])));
+      toast.info("Choose which suggestions to apply. Nothing has been saved yet.");
+    } catch (e) {
+      toast.error(errMsg(e, "AI enhancement failed"));
+    } finally {
+      setEnhancing(false);
+    }
+  };
+
   if (loading) return <div className="flex justify-center py-32"><Loader2 className="animate-spin text-[var(--accent)]" /></div>;
+  if (loadError) return <div role="alert" className="p-6 border border-red-200 bg-red-50">{loadError} Reload this page before editing.</div>;
 
   const avatarInitials = getAvatarInitials(form.startup_name, user?.name, user?.email);
 
@@ -90,10 +127,62 @@ export default function StartupProfile() {
               </div>
             </div>
           </div>
-          <Button className="rounded-md bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white h-11 px-5 btn-press" onClick={save} disabled={busy} data-testid="profile-save">
+          <Button className="rounded-md bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white h-11 px-5 btn-press" onClick={save} disabled={busy || enhancing || Boolean(suggestions)} data-testid="profile-save">
             {busy ? <><Loader2 size={14} className="mr-2 animate-spin" /> Saving</> : <><Save size={14} className="mr-2" /> Save changes</>}
           </Button>
         </div>
+
+        <div className="mb-8 border border-emerald-200 bg-emerald-50/60 p-5">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 text-sm font-semibold text-emerald-900"><Sparkles size={15} /> Enhance profile with AI</div>
+              <p className="mt-1 text-xs text-emerald-800/75">Add a website, summary, or PDF. Review each suggestion before applying it to your profile.</p>
+            </div>
+            <Button variant="outline" onClick={() => setShowEnhancer((value) => !value)} className="shrink-0 border-emerald-300 text-emerald-900" data-testid="toggle-profile-enhancer">
+              {showEnhancer ? "Hide" : "Enhance now"}
+            </Button>
+          </div>
+          {showEnhancer && (
+            <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4" data-testid="profile-enhancer">
+              <Input value={enhanceUrl} onChange={(e) => setEnhanceUrl(e.target.value)} placeholder="https://yourstartup.com" className="h-11 rounded-md bg-white" data-testid="profile-enhance-url" />
+              <label className="flex items-center gap-3 h-11 px-3 rounded-md border border-slate-300 bg-white text-sm text-slate-600 cursor-pointer">
+                <Upload size={15} className="text-emerald-600" />
+                <span className="truncate">{enhanceFile ? enhanceFile.name : "Upload pitch deck PDF"}</span>
+                <input type="file" accept=".pdf,application/pdf" hidden onChange={(e) => setEnhanceFile(e.target.files?.[0] || null)} />
+              </label>
+              <Textarea value={enhanceSummary} onChange={(e) => setEnhanceSummary(e.target.value)} rows={3} placeholder="Describe what you are building, who it serves, and your traction…" className="md:col-span-2 rounded-md bg-white" data-testid="profile-enhance-summary" />
+              <Button onClick={enhance} disabled={enhancing || busy || Boolean(suggestions)} className="md:col-span-2 bg-emerald-700 hover:bg-emerald-800 text-white" data-testid="profile-enhance-submit">
+                {enhancing ? <><Loader2 size={14} className="mr-2 animate-spin" /> Analyzing…</> : <><Sparkles size={14} className="mr-2" /> Analyze and fill profile</>}
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {suggestions && (
+          <div className="mb-8 rounded-md border border-emerald-200 bg-white p-6 space-y-4" data-testid="profile-suggestions">
+            <h2 className="text-lg font-semibold">Review suggested changes</h2>
+            <p className="text-sm text-slate-600">Select the fields you want to use. Applying suggestions updates the form; Save changes stores your profile.</p>
+            {Object.entries(suggestions).map(([key, value]) => (
+              <label key={key} className="block border rounded-md p-4 cursor-pointer">
+                <span className="flex items-center gap-2 font-medium capitalize">
+                  <input type="checkbox" checked={Boolean(selected[key])} onChange={e => setSelected(s => ({ ...s, [key]: e.target.checked }))} />
+                  {key.replaceAll("_", " ")}
+                </span>
+                <span className="block mt-2 text-sm text-slate-500 whitespace-pre-wrap">Current: {String(form[key] || "Not provided")}</span>
+                <span className="block mt-2 text-sm text-emerald-900 whitespace-pre-wrap">Suggested: {String(value)}</span>
+              </label>
+            ))}
+            <div className="flex flex-wrap gap-3">
+              <Button className="bg-emerald-700 text-white hover:bg-emerald-800 focus-visible:ring-emerald-600" data-testid="profile-apply-suggestions" disabled={!Object.values(selected).some(Boolean)} onClick={() => {
+                setForm(current => ({ ...current, ...Object.fromEntries(Object.entries(suggestions).filter(([key]) => selected[key])) }));
+                setSuggestions(null);
+                setShowEnhancer(false);
+                toast.info("Suggestions applied. Review the form and save changes.");
+              }}>Apply selected</Button>
+              <Button variant="outline" onClick={() => setSuggestions(null)}>Discard suggestions</Button>
+            </div>
+          </div>
+        )}
 
         <motion.div key={active} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
           className="bg-white border border-slate-200 p-7 space-y-6">

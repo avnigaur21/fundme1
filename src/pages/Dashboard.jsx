@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import CountUp from "react-countup";
 import { ArrowRight, Calendar, FileText, Bookmark, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { apiListOpportunities, apiListDrafts, apiGetProfile, apiSaveOpp, apiUnsaveOpp, apiGetMatchScores } from "@/lib/api";
+import { apiListOpportunities, apiListDrafts, apiGetProfile, apiSaveOpp, apiUnsaveOpp, apiGetMatchScores, apiTriggerScraper, errMsg } from "@/lib/api";
 import { getUser } from "@/lib/auth";
 
 const fade = { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 } };
@@ -51,14 +51,27 @@ export default function Dashboard() {
   const nav = useNavigate();
   const [data, setData] = useState({ opps: [], drafts: [], profile: null });
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [syncing, setSyncing] = useState(false);
 
   const reload = () => {
     setLoading(true);
-    Promise.all([
-      apiListOpportunities().catch(() => []),
-      apiListDrafts().catch(() => []),
-      apiGetProfile().catch(() => null),
-    ]).then(([opps, drafts, profile]) => {
+    setLoadError("");
+    Promise.allSettled([
+      apiListOpportunities(),
+      apiListDrafts(),
+      apiGetProfile(),
+    ]).then((results) => {
+      const [oppsResult, draftsResult, profileResult] = results;
+      const failures = results.filter((result) => result.status === "rejected");
+      const opps = oppsResult.status === "fulfilled" ? oppsResult.value : [];
+      const drafts = draftsResult.status === "fulfilled" ? draftsResult.value : [];
+      const profile = profileResult.status === "fulfilled" ? profileResult.value : null;
+      if (failures.length > 0) {
+        const firstError = failures[0].reason;
+        console.error("Dashboard data load failed:", firstError);
+        setLoadError(errMsg(firstError, "Some dashboard data could not be loaded."));
+      }
       setData({ opps, drafts, profile });
       setLoading(false);
 
@@ -101,6 +114,18 @@ export default function Dashboard() {
     }
   };
 
+  const syncOpportunities = async () => {
+    setSyncing(true);
+    try {
+      await apiTriggerScraper();
+      reload();
+    } catch (error) {
+      setLoadError(errMsg(error, "Opportunity sync failed."));
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   if (loading) return <div className="flex items-center justify-center py-32"><Loader2 className="animate-spin text-[var(--accent)]" /></div>;
 
   const { opps, drafts, profile } = data;
@@ -128,6 +153,11 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-12 max-w-7xl" data-testid="dashboard-page">
+      {loadError && (
+        <div className="border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900" role="alert">
+          We couldn’t load some of your saved data: {loadError}. Check that the backend is running and Supabase tables/API permissions are configured.
+        </div>
+      )}
       <header className="flex items-end justify-between flex-wrap gap-4">
         <div>
           <div className="text-[10px] uppercase tracking-[0.22em] text-[var(--accent)] font-bold">Overview</div>
@@ -218,7 +248,14 @@ export default function Dashboard() {
             <div className="col-span-1 text-right">Save</div>
           </div>
           {matches.length === 0 ? (
-            <div className="px-6 py-10 text-center text-sm text-slate-500">No matches yet - try refreshing or completing your profile.</div>
+            <div className="px-6 py-10 text-center text-sm text-slate-500">
+              <div>{opps.length === 0 ? "No opportunities are loaded yet." : "No matches yet - try completing your profile."}</div>
+              {opps.length === 0 && (
+                <Button onClick={syncOpportunities} disabled={syncing} variant="outline" className="mt-4 rounded-md border-slate-300">
+                  {syncing ? "Syncing opportunities…" : "Sync opportunities"}
+                </Button>
+              )}
+            </div>
           ) : matches.map((row) => (
             <div
               key={row.opportunity_id}
