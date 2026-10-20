@@ -194,7 +194,10 @@ async function upsertDraft({
 
   const existingFields = existing ? existing.form_fields : {};
   const profileFields = buildProfileFormFields(normalizedSchema, profile);
-  const mergedFields = buildInitialFormFields(normalizedSchema, { ...profileFields, ...existingFields });
+  const retainedFields = Object.fromEntries(Object.entries(existingFields || {}).filter(([, value]) => (
+    value === false || value === 0 || (value !== undefined && value !== null && String(value).trim() !== '')
+  )));
+  const mergedFields = buildInitialFormFields(normalizedSchema, { ...profileFields, ...retainedFields });
   const completion = calculateCompletion(normalizedSchema, mergedFields);
   const requiredDocumentsStatus = existing?.required_documents_status || getDefaultRequiredDocumentStatus(normalizedSchema.required_documents);
 
