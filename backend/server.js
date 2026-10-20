@@ -1973,7 +1973,13 @@ app.post('/api/drafts/bootstrap', async (req, res) => {
   res.status(201).json({ ...draft, opportunity });
   } catch (error) {
     logger.error('POST /api/drafts/bootstrap error:', error);
-    res.status(500).json({ error: 'Could not create draft. Check that the drafts table is available.' });
+    // Keep the friendly message, but include the database diagnostic so the
+    // client/Railway logs can identify schema, permission, or FK failures.
+    res.status(500).json({
+      error: 'Could not create draft. Check that the drafts table is available.',
+      detail: error?.message || String(error),
+      code: error?.code || null
+    });
   }
 });
 
