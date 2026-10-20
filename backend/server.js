@@ -1917,6 +1917,7 @@ app.get('/api/drafts/by-opportunity', async (req, res) => {
 // POST /api/drafts/bootstrap
 // POST /api/drafts/bootstrap
 app.post('/api/drafts/bootstrap', async (req, res) => {
+  try {
   const {
     user_id,
     opportunity_id,
@@ -1936,6 +1937,14 @@ app.post('/api/drafts/bootstrap', async (req, res) => {
     .select('*')
     .or(`opportunity_id.eq.${opportunity_id},slug.eq.${opportunity_id}`)
     .maybeSingle();
+
+  // Older rows may have an inconsistent id prefix casing. Resolve those
+  // without making the client guess which identifier the database uses.
+  if (!opportunity && !oppError) {
+    const fallback = await supabase.from('funding_opportunities').select('*').ilike('opportunity_id', opportunity_id).maybeSingle();
+    opportunity = fallback.data;
+    oppError = fallback.error;
+  }
 
   if (!opportunity && !oppError) {
     const { data: busOpp, error: busError } = await supabase
@@ -1960,7 +1969,12 @@ app.post('/api/drafts/bootstrap', async (req, res) => {
     capture_meta
   });
 
+  if (!draft?.draft_id) return res.status(500).json({ error: 'Draft was not persisted. Please try again.' });
   res.status(201).json({ ...draft, opportunity });
+  } catch (error) {
+    logger.error('POST /api/drafts/bootstrap error:', error);
+    res.status(500).json({ error: 'Could not create draft. Check that the drafts table is available.' });
+  }
 });
 
 // GET /api/drafts/:id

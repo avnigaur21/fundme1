@@ -105,7 +105,10 @@ export default function OpportunityDetails() {
   };
 
   const openPortal = async () => {
-    if (!opp.link) return;
+    if (!opp.link) {
+      toast.error("This opportunity does not have an application portal link yet.");
+      return;
+    }
     
     setApplyBusy(true);
     const isInstalled = await checkExtensionInstalled();
