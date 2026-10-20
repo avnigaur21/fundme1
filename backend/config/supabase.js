@@ -1,4 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
+const WebSocket = require('ws');
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
@@ -8,6 +9,10 @@ if (!supabaseUrl || !supabaseKey) {
   process.exit(1);
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+// Node 20 does not expose a native WebSocket constructor. Supabase Realtime
+// otherwise throws during client construction and repeatedly crashes Railway.
+const supabase = createClient(supabaseUrl, supabaseKey, {
+  realtime: { transport: WebSocket }
+});
 
 module.exports = supabase;
