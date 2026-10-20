@@ -62,8 +62,8 @@ export default function OpportunityCard({ opp, draft, onChange, onSavedChange })
     try {
       const nextDraft = await apiCreateDraft(opp.opportunity_id, opp.link);
       setCurrentDraft(nextDraft);
-      toast.success("Draft started. Next, use Apply to Portal.");
-      nav("/drafts");
+      toast.success("Draft created. Review your answers before applying.");
+      nav(`/drafts/${nextDraft.draft_id}?review=true`);
       onChange?.();
     } catch (err) {
       toast.error(errMsg(err, "Could not create draft."));

@@ -95,8 +95,8 @@ export default function OpportunityDetails() {
     try {
       const nextDraft = await apiCreateDraft(id, opp.link);
       setDraft(nextDraft);
-      toast.success("Draft started. Next, use Apply to Portal.");
-      nav("/drafts");
+      toast.success("Draft created. Review your answers before applying.");
+      nav(`/drafts/${nextDraft.draft_id}?review=true`);
     } catch (e) {
       toast.error(errMsg(e, "Could not create draft."));
     } finally {
@@ -322,7 +322,7 @@ function Section({ icon: Icon, title, children, aiAction }) {
     <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm group hover:border-slate-300 transition-colors">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[var(--primary-light)] text-[var(--accent)]">
+          <div className="w-10 h-10 rounded-xl bg-[var(--primary-light)] text-[var(--accent)] flex items-center justify-center shrink-0">
             <Icon size={20} />
           </div>
           <h2 className="font-display text-xl font-bold text-slate-900">{title}</h2>
