@@ -14,6 +14,19 @@ if (BACKEND && !BACKEND.startsWith("http")) {
 export const API_BASE = `${BACKEND}/api`;
 
 export const http = axios.create({ baseURL: API_BASE });
+// Keep route changes instant while preserving a short freshness window. Each
+// page is a separate route component, so without this every Explorer/Saved
+// switch repeats the same network requests and spinner.
+const READ_CACHE_TTL = 30_000;
+const readCache = new Map();
+const cachedRead = async (key, loader) => {
+  const hit = readCache.get(key);
+  if (hit && Date.now() - hit.at < READ_CACHE_TTL) return hit.value;
+  const value = await loader();
+  readCache.set(key, { at: Date.now(), value });
+  return value;
+};
+const invalidateReadCache = (...keys) => keys.forEach((key) => readCache.delete(key));
 http.interceptors.request.use(config => {
   const token = getUser()?.session_token;
   if (token) config.headers.Authorization = `Bearer ${token}`;
@@ -88,7 +101,8 @@ export const apiGenerateProfile = ({ file, startup_overview, website }) => {
 
 // ---------- opportunities ----------
 export const apiListOpportunities = async (type) => {
-  const raw = await unwrap(http.get(`/opportunities${type ? `?type=${encodeURIComponent(type)}` : ""}`));
+  const cacheKey = `opportunities:${type || "all"}`;
+  const raw = await cachedRead(cacheKey, () => unwrap(http.get(`/opportunities${type ? `?type=${encodeURIComponent(type)}` : ""}`)));
   const normalized = filterOpenDeadlines(raw).map(normalizeOpp);
   return applySavedState(normalized);
 };
@@ -96,7 +110,7 @@ export const apiListOpportunities = async (type) => {
 // "Business" view = revenue-oriented opportunities, including live GeM tenders.
 const BUSINESS_TYPES = new Set(["Contest", "Fellowship", "Other", "Tender", "Reverse Auction"]);
 export const apiListBusinessOpps = async () => {
-  const response = await unwrap(http.get("/business-opportunities?refresh=1"));
+  const response = await cachedRead("business-opportunities", () => unwrap(http.get("/business-opportunities?refresh=1")));
   const raw = Array.isArray(response) ? response : (response.opportunities || []);
   // The server's business table is the source of truth. Older rows can have
   // provider-specific type labels, so filtering to a small exact set hid valid
@@ -115,7 +129,7 @@ const savedIdsForCurrentUser = async () => {
   const uid = getUserId();
   if (!uid) return new Set();
 
-  const list = await unwrap(http.get(`/saved?user_id=${encodeURIComponent(uid)}`));
+  const list = await cachedRead(`saved-ids:${uid}`, () => unwrap(http.get(`/saved?user_id=${encodeURIComponent(uid)}`)));
   return new Set(
     list
       .map((row) => row.opportunity_id || row.opportunity?.opportunity_id)
@@ -135,17 +149,23 @@ const applySavedState = async (opportunities) => {
 
 export const apiListSaved = async () => {
   const uid = getUserId();
-  const list = await unwrap(http.get(`/saved?user_id=${encodeURIComponent(uid)}`));
+  const list = await cachedRead(`saved:${uid}`, () => unwrap(http.get(`/saved?user_id=${encodeURIComponent(uid)}`)));
   // Their /saved returns saved-opportunity rows joined with opportunity. Some impls
   // return [{opportunity_id, opportunity:{...}}]; others return the merged opp directly.
   return list.map((row) => normalizeOpp(row.opportunity || row)).map((o) => ({ ...o, saved: true }));
 };
 
 export const apiSaveOpp = (opportunity_id) =>
-  unwrap(http.post("/saved", { user_id: getUserId(), opportunity_id }));
+  unwrap(http.post("/saved", { user_id: getUserId(), opportunity_id })).then((value) => {
+    invalidateReadCache(`saved:${getUserId()}`, `saved-ids:${getUserId()}`);
+    return value;
+  });
 
 export const apiUnsaveOpp = (opportunity_id) =>
-  unwrap(http.delete(`/saved?user_id=${encodeURIComponent(getUserId())}&opportunity_id=${encodeURIComponent(opportunity_id)}`));
+  unwrap(http.delete(`/saved?user_id=${encodeURIComponent(getUserId())}&opportunity_id=${encodeURIComponent(opportunity_id)}`)).then((value) => {
+    invalidateReadCache(`saved:${getUserId()}`, `saved-ids:${getUserId()}`);
+    return value;
+  });
 
 // ---------- drafts ----------
 const draftProgress = (d = {}) => {
@@ -172,7 +192,8 @@ const normalizeDraft = (d = {}) => ({
 });
 
 export const apiListDrafts = async () => {
-  const list = await unwrap(http.get(`/drafts?user_id=${encodeURIComponent(getUserId())}`));
+  const uid = getUserId();
+  const list = await cachedRead(`drafts:${uid}`, () => unwrap(http.get(`/drafts?user_id=${encodeURIComponent(uid)}`)));
   return list.map(normalizeDraft);
 };
 
@@ -191,15 +212,14 @@ export const apiGetDraftByOpportunity = async (opportunity_id) => {
   }
 };
 
-export const apiCreateDraft = async (opportunity_id, source_url = "") =>
-  normalizeDraft(await unwrap(http.post("/drafts/bootstrap", {
-    user_id: getUserId(),
-    opportunity_id,
-    source_url,
-    form_schema: null,
-    schema_source: "manual",
-    capture_meta: {},
+export const apiCreateDraft = async (opportunity_id, source_url = "") => {
+  const draft = normalizeDraft(await unwrap(http.post("/drafts/bootstrap", {
+    user_id: getUserId(), opportunity_id, source_url,
+    form_schema: null, schema_source: "manual", capture_meta: {},
   })));
+  invalidateReadCache(`drafts:${getUserId()}`);
+  return draft;
+};
 
 export const apiStageExtensionSession = ({ opportunity_id, external_url }) =>
   unwrap(http.post("/extension/session", {
@@ -209,10 +229,16 @@ export const apiStageExtensionSession = ({ opportunity_id, external_url }) =>
   }));
 
 export const apiUpdateDraft = (draft_id, data) =>
-  unwrap(http.put(`/drafts/${draft_id}`, { ...data, user_id: getUserId() }));
+  unwrap(http.put(`/drafts/${draft_id}`, { ...data, user_id: getUserId() })).then((value) => {
+    invalidateReadCache(`drafts:${getUserId()}`);
+    return value;
+  });
 
 export const apiDeleteDraft = (draft_id) =>
-  unwrap(http.delete(`/drafts/${draft_id}?user_id=${encodeURIComponent(getUserId())}`));
+  unwrap(http.delete(`/drafts/${draft_id}?user_id=${encodeURIComponent(getUserId())}`)).then((value) => {
+    invalidateReadCache(`drafts:${getUserId()}`);
+    return value;
+  });
 
 export const apiGenerateDraftAnswers = (data) =>
   unwrap(http.post("/ai/generate-draft", { ...data, user_id: getUserId() }));
@@ -259,7 +285,7 @@ export const apiUpdateApplicationStatus = (application_id, data) =>
 
 // ---------- founder profile ----------
 export const apiGetProfile = () =>
-  unwrap(http.get(`/founder/profile?user_id=${encodeURIComponent(getUserId())}`)).catch((e) => {
+  cachedRead(`profile:${getUserId()}`, () => unwrap(http.get(`/founder/profile?user_id=${encodeURIComponent(getUserId())}`))).catch((e) => {
     // Their server returns 404 if profile doesn't exist yet — treat as empty.
     if (e.response?.status === 404) return null;
     throw e;
@@ -275,6 +301,7 @@ export const apiSaveProfile = async (data) => {
     // Treat a null response as a failed save. This protects older deployed
     // backends that still return 200 for an UPDATE matching zero rows.
     if (!saved) throw Object.assign(new Error("Profile was not saved"), { response: { status: 404 } });
+    invalidateReadCache(`profile:${getUserId()}`);
     const persisted = await apiGetProfile();
     if (!persisted || persisted.user_id !== body.user_id) {
       throw new Error("Profile save could not be verified. Your edits are still here; please retry.");
@@ -282,7 +309,9 @@ export const apiSaveProfile = async (data) => {
     return persisted;
   } catch (e) {
     if (e.response?.status === 404) {
-      return unwrap(http.post("/founder/profile", body));
+      const created = await unwrap(http.post("/founder/profile", body));
+      invalidateReadCache(`profile:${getUserId()}`);
+      return created;
     }
     throw e;
   }
