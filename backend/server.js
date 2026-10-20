@@ -177,7 +177,8 @@ async function upsertDraft({
   schema,
   source_url = '',
   schema_source = 'manual',
-  capture_meta = {}
+  capture_meta = {},
+  profile = {}
 }) {
   const normalizedSchema = normalizeSchema(schema);
 
@@ -192,7 +193,8 @@ async function upsertDraft({
   const existing = existingDrafts?.[0];
 
   const existingFields = existing ? existing.form_fields : {};
-  const mergedFields = buildInitialFormFields(normalizedSchema, existingFields);
+  const profileFields = buildProfileFormFields(normalizedSchema, profile);
+  const mergedFields = buildInitialFormFields(normalizedSchema, { ...profileFields, ...existingFields });
   const completion = calculateCompletion(normalizedSchema, mergedFields);
   const requiredDocumentsStatus = existing?.required_documents_status || getDefaultRequiredDocumentStatus(normalizedSchema.required_documents);
 
@@ -233,6 +235,34 @@ async function upsertDraft({
     if (insertError) throw insertError;
     return inserted[0];
   }
+}
+
+// Seed new drafts from saved founder data; existing draft answers remain authoritative.
+function buildProfileFormFields(schema = {}, profile = {}) {
+  const values = {};
+  const aliases = {
+    startup_name: ['startup_name', 'company_name', 'name'], website: ['website', 'startup_website'],
+    application_email: ['application_email', 'email'], contact_email: ['application_email', 'email'],
+    phone: ['phone', 'contact_phone'], location: ['location', 'headquarters', 'city', 'state'],
+    startup_overview: ['startup_overview', 'overview', 'description'], problem_statement: ['problem_statement', 'problem'],
+    solution_summary: ['solution_summary', 'solution'], target_customers: ['target_customers', 'customers', 'target_market'],
+    business_model: ['business_model', 'revenue_model'], team_size: ['team_size'], founded: ['founded', 'founded_year'],
+    incorporation: ['incorporation'], dpiit: ['dpiit'], sector: ['sector', 'industry'], stage: ['stage'],
+    revenue: ['revenue'], traction_summary: ['traction_summary', 'traction', 'traction_metrics']
+  };
+  const profileValue = keys => keys.map(key => profile[key]).find(value => value !== undefined && value !== null && String(value).trim() !== '');
+  flattenSchema(schema).forEach(field => {
+    const key = String(field.id || '').toLowerCase();
+    const label = `${field.label || ''} ${field.placeholder || ''}`.toLowerCase();
+    for (const [canonical, keys] of Object.entries(aliases)) {
+      if (key === canonical || keys.some(alias => key.includes(alias) || label.includes(alias.replace(/_/g, ' ')))) {
+        const candidate = profileValue(keys);
+        if (candidate !== undefined) values[field.id] = String(candidate);
+        break;
+      }
+    }
+  });
+  return values;
 }
 
 // ─── AUTH ─────────────────────────────────────────────────────────────────────
@@ -1960,25 +1990,35 @@ app.post('/api/drafts/bootstrap', async (req, res) => {
   if (!opportunity) return res.status(404).json({ error: 'Opportunity not found' });
 
   const schemaToUse = form_schema || opportunity.generated_application_schema || inferSchemaFromOpportunity(opportunity);
+  const [{ data: founderProfile }, { data: account }] = await Promise.all([
+    supabase.from('founder_profiles').select('*').eq('user_id', user_id).maybeSingle(),
+    supabase.from('users').select('name,email').eq('user_id', user_id).maybeSingle()
+  ]);
+  const profile = { ...(founderProfile || {}), ...(account || {}) };
+  profile.application_email = founderProfile?.application_email || account?.email || '';
   const draft = await upsertDraft({
     user_id,
     opportunity_id: opportunity.opportunity_id,
     schema: schemaToUse,
     source_url,
     schema_source,
-    capture_meta
+    capture_meta,
+    profile
   });
 
   if (!draft?.draft_id) return res.status(500).json({ error: 'Draft was not persisted. Please try again.' });
   res.status(201).json({ ...draft, opportunity });
   } catch (error) {
-    logger.error('POST /api/drafts/bootstrap error:', error);
-    // Keep the friendly message, but include the database diagnostic so the
-    // client/Railway logs can identify schema, permission, or FK failures.
+    const reference = uuidv4();
+    // Railway collects stdout/stderr, not the logger's private error file.
+    logger.error('POST /api/drafts/bootstrap error:', error, {
+      reference,
+      code: error?.code || null,
+      message: error?.message || 'Unknown draft error'
+    });
     res.status(500).json({
-      error: 'Could not create draft. Check that the drafts table is available.',
-      detail: error?.message || String(error),
-      code: error?.code || null
+      error: 'Could not save your draft. Please contact support with the error reference.',
+      reference
     });
   }
 });

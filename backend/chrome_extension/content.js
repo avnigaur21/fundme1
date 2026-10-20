@@ -14,7 +14,7 @@ if (_isFundMeAppPage) {
                 fundmeUserId: user_id,
                 fundmeSessionToken: session_token,
                 fundmeOpportunityId: opportunity_id,
-                fundmeBaseUrl: baseUrl || 'https://fundme-final-production.up.railway.app'
+                fundmeBaseUrl: baseUrl || 'https://fundme.up.railway.app'
             });
         }
     });
@@ -709,7 +709,7 @@ async function checkStagedSession() {
     try {
         const url = window.location.href;
         const settings = await chrome.storage.local.get(['fundmeBaseUrl']);
-        const baseUrl = (settings.fundmeBaseUrl || 'https://fundme-final-production.up.railway.app').replace(/\/+$/, '');
+        const baseUrl = (settings.fundmeBaseUrl || 'https://fundme.up.railway.app').replace(/\/+$/, '');
         const API_BASE = `${baseUrl}/api`;
 
         // Ask the server: "is this URL a known apply link for an active session?"
@@ -856,7 +856,7 @@ async function handleSuccess() {
 
     try {
         const settings = await chrome.storage.local.get(['fundmeBaseUrl']);
-        const baseUrl = (settings.fundmeBaseUrl || 'https://fundme-final-production.up.railway.app').replace(/\/$/, '');
+        const baseUrl = (settings.fundmeBaseUrl || 'https://fundme.up.railway.app').replace(/\/$/, '');
         const API_BASE = `${baseUrl}/api`;
 
         const res = await authenticatedFetch(`${API_BASE}/applications`, {
