@@ -2,6 +2,9 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
+    "variables": {
+      "NIXPACKS_NODE_VERSION": "20"
+    },
     "buildCommand": "npm --prefix backend ci --omit=dev && npm run build"
   },
   "deploy": {
