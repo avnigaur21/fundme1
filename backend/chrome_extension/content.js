@@ -1,5 +1,5 @@
 // ─── GUARD: Skip all logic on FundMe's own app pages ────────────────────────
-const _isFundMeAppPage = ['localhost', '127.0.0.1', 'fundme-self.vercel.app', 'fundme-final-production.up.railway.app'].includes(window.location.hostname);
+const _isFundMeAppPage = ['localhost', '127.0.0.1', 'fundme-self.vercel.app', 'fundme-final-production.up.railway.app', 'fundme.up.railway.app'].includes(window.location.hostname);
 if (_isFundMeAppPage) {
     document.documentElement.dataset.fundmeExtensionInstalled = 'true';
 

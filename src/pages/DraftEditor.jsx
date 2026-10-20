@@ -160,8 +160,8 @@ export default function DraftEditor() {
 
   return (
     <div className="max-w-5xl space-y-8" data-testid="draft-editor-page">
-      <header className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
-        <div>
+      <header className="grid grid-cols-1 gap-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
+        <div className="min-w-0">
           <Link to="/drafts" className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-slate-900">
             <ArrowLeft size={14} className="mr-2" /> Back to drafts
           </Link>
@@ -169,7 +169,7 @@ export default function DraftEditor() {
           <h1 className="mt-2 font-display text-4xl md:text-5xl font-bold tracking-tight">{draft.opportunity_title}</h1>
           <p className="mt-3 text-slate-500">{isReview ? "Previewing your answers before using them on the portal." : (draft.form_schema?.subtitle || "Review and refine your application answers.")}</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap justify-start gap-2 md:max-w-[34rem] md:justify-end">
           {!isReview && (
             <>
               <Button variant="outline" className="h-11 rounded-md border-slate-300" onClick={generateAnswers} disabled={generating || saving || fields.length === 0}>
