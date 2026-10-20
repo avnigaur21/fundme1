@@ -14,7 +14,8 @@
     "http://localhost:3000/*",
     "http://127.0.0.1:3000/*",
     "https://fundme-self.vercel.app/*",
-    "https://fundme-final-production.up.railway.app/*"
+    "https://fundme-final-production.up.railway.app/*",
+    "https://fundme1-production-production.up.railway.app/*"
   ],
   "action": {
     "default_title": "FundMe Smart Apply",
