@@ -96,9 +96,15 @@ export const apiListOpportunities = async (type) => {
 // "Business" view = revenue-oriented opportunities, including live GeM tenders.
 const BUSINESS_TYPES = new Set(["Contest", "Fellowship", "Other", "Tender", "Reverse Auction"]);
 export const apiListBusinessOpps = async () => {
-  const response = await unwrap(http.get("/business-opportunities"));
+  const response = await unwrap(http.get("/business-opportunities?refresh=1"));
   const raw = Array.isArray(response) ? response : (response.opportunities || []);
-  const normalized = filterOpenDeadlines(raw).filter((o) => BUSINESS_TYPES.has(o.type)).map(normalizeOpp);
+  // The server's business table is the source of truth. Older rows can have
+  // provider-specific type labels, so filtering to a small exact set hid valid
+  // scraped tenders and contests from the Business Opportunities page.
+  const normalized = filterOpenDeadlines(raw).map((item) => normalizeOpp({
+    ...item,
+    type: BUSINESS_TYPES.has(item.type) ? item.type : (item.type || "Other"),
+  }));
   return applySavedState(normalized);
 };
 

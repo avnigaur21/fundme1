@@ -3160,13 +3160,42 @@ Focus on missing required fields, required documents, vague or short answers, op
       console.warn(`Draft progress AI unavailable, returning deterministic analysis: ${aiErr.message}`);
     }
 
+    // The deterministic checklist is authoritative for required fields/documents.
+    // LLMs are useful for wording and prioritization, but an incomplete/empty LLM
+    // array must never make the UI claim that required work is complete.
+    const aiMissingFields = Array.isArray(analysis?.missing_required_field_details)
+      ? analysis.missing_required_field_details
+      : [];
+    const aiMissingFieldIds = Array.isArray(analysis?.missing_required_fields)
+      ? analysis.missing_required_fields
+      : [];
+    const mergedMissingFieldDetails = [...deterministicAnalysis.missing_required_field_details];
+    for (const item of aiMissingFields) {
+      const id = item?.id || item?.field;
+      if (id && !mergedMissingFieldDetails.some(existing => existing.id === id)) {
+        mergedMissingFieldDetails.push(item);
+      }
+    }
+    const mergedMissingFieldIds = [...new Set([
+      ...deterministicAnalysis.missing_required_fields,
+      ...aiMissingFieldIds,
+      ...mergedMissingFieldDetails.map(item => item.id).filter(Boolean),
+    ])];
+    const aiMissingDocuments = Array.isArray(analysis?.missing_documents)
+      ? analysis.missing_documents
+      : [];
+    const mergedMissingDocuments = [...new Set([
+      ...deterministicAnalysis.missing_documents,
+      ...aiMissingDocuments,
+    ])];
+
     const enhancedAnalysis = {
       ...deterministicAnalysis,
       ...(analysis || {}),
       completion_analysis: deterministicAnalysis.completion_analysis,
-      missing_required_fields: Array.isArray(analysis?.missing_required_fields) ? analysis.missing_required_fields : deterministicAnalysis.missing_required_fields,
-      missing_required_field_details: Array.isArray(analysis?.missing_required_field_details) ? analysis.missing_required_field_details : deterministicAnalysis.missing_required_field_details,
-      missing_documents: Array.isArray(analysis?.missing_documents) ? analysis.missing_documents : deterministicAnalysis.missing_documents,
+      missing_required_fields: mergedMissingFieldIds,
+      missing_required_field_details: mergedMissingFieldDetails,
+      missing_documents: mergedMissingDocuments,
       ai_available: aiAvailable,
       next_steps: Array.isArray(analysis?.next_steps) ? analysis.next_steps : deterministicAnalysis.next_steps,
       estimated_time_to_complete: deterministicAnalysis.estimated_time_to_complete

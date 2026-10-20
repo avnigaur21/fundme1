@@ -40,6 +40,16 @@ const missingDocumentCount = (draft = {}) => {
   }).length;
 };
 
+const missingRequiredFieldDetails = (draft = {}) => {
+  const fields = Array.isArray(draft.form_schema?.sections)
+    ? draft.form_schema.sections.flatMap((section) => Array.isArray(section.fields) ? section.fields : [])
+    : [];
+  const values = draft.form_fields || {};
+  return fields
+    .filter((field) => field.required && !String(values[field.id] ?? "").trim())
+    .map((field) => ({ id: field.id, label: field.label || field.id, section: field.section || "Application Details" }));
+};
+
 const needsInsights = (draft = {}) => Number(draft.progress || 0) < 100 || missingDocumentCount(draft) > 0;
 
 export default function Drafts() {
@@ -109,12 +119,9 @@ export default function Drafts() {
       return next;
     });
 
-    // Only auto-load insights the very first time the user visits this page in the session
-    const sessionKey = "FUNDME_DRAFT_INSIGHTS_FETCHED";
-    if (!sessionStorage.getItem(sessionKey)) {
-      sessionStorage.setItem(sessionKey, "true");
-      incompleteDrafts.forEach((draft) => loadDraftInsight(draft));
-    }
+    // Recompute on each page load. Drafts can change in the editor or through
+    // the extension, so a session-wide cache otherwise leaves stale insight text.
+    incompleteDrafts.forEach((draft) => loadDraftInsight(draft));
   }, [loadDraftInsight]);
 
   const reload = useCallback(() => {
@@ -375,8 +382,16 @@ function WorkflowStep({ icon: Icon, title, text }) {
 }
 
 function DraftInsightPanel({ draft, insight, loading, onRefresh }) {
-  const missingFields = insight?.missing_required_field_details || insight?.missing_required_fields || [];
-  const missingDocs = insight?.missing_documents || [];
+  const missingFields = insight?.missing_required_field_details?.length
+    ? insight.missing_required_field_details
+    : (insight?.missing_required_fields?.length ? insight.missing_required_fields : missingRequiredFieldDetails(draft));
+  const missingDocs = insight?.missing_documents?.length
+    ? insight.missing_documents
+    : getRequiredDocuments(draft).filter((doc) => {
+      const status = draft.required_documents_status || {};
+      const value = status[doc] || status[String(doc).toLowerCase().trim()];
+      return !["ready", "uploaded", "provided", "complete", "completed"].includes(String(value || "").toLowerCase());
+    });
   const priority = insight?.priority_improvements || [];
   const suggestions = insight?.actionable_suggestions || insight?.next_steps || [];
   const completion = typeof insight?.completion_percentage === "number" ? insight.completion_percentage : draft.progress || 0;
